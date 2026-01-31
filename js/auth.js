@@ -143,7 +143,7 @@
     console.log('[auth] _fetchRoleDirectly called with userId:', userId);
     
     try {
-      const url = 'https://ghzfnosevncivblpbful.supabase.co' + userId + '&select=role';
+      const url = 'https://ghzfnosevncivblpbful.supabase.co/rest/v1/profiles?id=eq.' + userId + '&select=role';
       
       console.log('[auth] Fetching from:', url);
       
