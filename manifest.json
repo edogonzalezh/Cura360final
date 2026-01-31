@@ -1,0 +1,25 @@
+{
+  "name": "Cura360",
+  "short_name": "Cura360",
+  "description": "Sistema de gestión y seguimiento clínico de heridas",
+  "start_url": "index.html",
+  "display": "standalone",
+  "theme_color": "#0f1923",
+  "background_color": "#0f1923",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/icon-192.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icon-512.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "medical"]
+}

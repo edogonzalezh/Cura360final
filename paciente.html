@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f1f5f9" />
+  <title>Cura360 — Mi estado</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
+  <style>
+    /* ── Patient-view overrides (light theme) ────────── */
+    [data-theme="light"] .topbar {
+      background: var(--clr-white);
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    [data-theme="light"] .card,
+    [data-theme="light"] .stat-card {
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+    [data-theme="light"] .list-item {
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+    [data-theme="light"] .list-item:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+    [data-theme="light"] .timeline-item__card {
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+    /* Patient avatar colors in light mode */
+    .patient-hero {
+      background: linear-gradient(135deg, #0f1923 0%, #1e3044 100%);
+      border-radius: var(--radius-2xl);
+      padding: var(--sp-6);
+      margin-bottom: var(--sp-5);
+      color: var(--clr-white);
+      position: relative;
+      overflow: hidden;
+    }
+    .patient-hero::after {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      background: rgba(45,212,191,.12);
+    }
+    .patient-hero__header {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-4);
+      position: relative;
+      z-index: 1;
+    }
+    .patient-hero__avatar {
+      width: 56px; height: 56px;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, var(--clr-teal-500), var(--clr-teal-700));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--text-xl);
+      font-weight: var(--weight-700);
+      color: white;
+      flex-shrink: 0;
+    }
+    .patient-hero__name {
+      font-size: var(--text-lg);
+      font-weight: var(--weight-700);
+    }
+    .patient-hero__sub {
+      font-size: var(--text-sm);
+      opacity: .7;
+      margin-top: 2px;
+    }
+    .patient-hero__logout {
+      position: absolute;
+      top: var(--sp-4);
+      right: var(--sp-4);
+      z-index: 1;
+      width: 36px; height: 36px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,.6);
+      background: rgba(255,255,255,.1);
+      transition: background var(--dur-fast);
+    }
+    .patient-hero__logout:hover { background: rgba(255,255,255,.2); }
+    .patient-hero__logout svg { width: 18px; height: 18px; }
+
+    /* Indications box */
+    .indications {
+      background: linear-gradient(135deg, rgba(45,212,191,.08), rgba(45,212,191,.03));
+      border: 1px solid rgba(45,212,191,.2);
+      border-radius: var(--radius-xl);
+      padding: var(--sp-5);
+      margin-top: var(--sp-4);
+    }
+    .indications__title {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-600);
+      color: var(--clr-teal-700);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: var(--sp-3);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+    }
+    .indications__title svg { width: 16px; height: 16px; }
+    .indications__item {
+      font-size: var(--text-sm);
+      color: var(--clr-slate-700);
+      line-height: var(--leading-relaxed);
+      padding: var(--sp-2) 0;
+      border-bottom: 1px solid rgba(45,212,191,.15);
+    }
+    .indications__item:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+
+<!-- ── Full-page loader ─────────────────────────────── -->
+<div class="loader-overlay" id="loader">
+  <div class="spinner"></div>
+</div>
+
+<!-- ── App shell ────────────────────────────────────── -->
+<div class="app-shell">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar__logo">
+      <div class="topbar__logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <span class="topbar__logo-text">Cura<span>360</span></span>
+    </div>
+    <div class="topbar__actions">
+      <button class="topbar__btn" id="btn-logout" aria-label="Cerrar sesión">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main class="main-content" role="main">
+
+    <!-- Patient hero banner -->
+    <div class="patient-hero">
+      <button class="patient-hero__logout" id="btn-logout-hero" aria-label="Cerrar sesión">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+      <div class="patient-hero__header">
+        <div class="patient-hero__avatar" id="hero-avatar">?</div>
+        <div>
+          <div class="patient-hero__name" id="hero-name">Cargando...</div>
+          <div class="patient-hero__sub" id="hero-sub">Paciente</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Patient info card -->
+    <div class="card" style="margin-bottom:var(--sp-4);">
+      <div class="card__header">
+        <span class="card__title">Información clínica</span>
+        <span class="badge badge--patient">Solo lectura</span>
+      </div>
+      <div class="card__body">
+        <div class="detail-row">
+          <span class="detail-row__label">Edad</span>
+          <span class="detail-row__value" id="p-age">—</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-row__label">Diagnóstico</span>
+          <span class="detail-row__value" id="p-diagnosis">—</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-row__label">Comorbilidades</span>
+          <span class="detail-row__value" id="p-comorbidities">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wounds section -->
+    <h3 style="margin-bottom:var(--sp-3);font-size:var(--text-md);color:var(--clr-slate-700);">
+      Mis heridas
+    </h3>
+    <div id="patient-wounds">
+      <!-- populated by JS -->
+    </div>
+
+    <!-- Wound detail (shown when clicking a wound) -->
+    <div id="wound-detail-section" style="display:none; margin-top:var(--sp-4);">
+      <div class="card">
+        <div class="card__header">
+          <div style="display:flex;align-items:center;gap:var(--sp-3);">
+            <div class="list-item__avatar list-item__avatar--wound" style="width:40px;height:40px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
+              </svg>
+            </div>
+            <div>
+              <div class="card__title" id="pwd-type">—</div>
+              <span class="badge badge--active" id="pwd-status">Activa</span>
+            </div>
+          </div>
+          <button class="btn btn--ghost btn--sm" id="btn-close-wound-detail">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+            </svg>
+            Volver
+          </button>
+        </div>
+        <div class="card__body">
+          <div class="detail-row">
+            <span class="detail-row__label">Ubicación</span>
+            <span class="detail-row__value" id="pwd-location">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Dimensiones</span>
+            <span class="detail-row__value" id="pwd-dimensions">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Fecha inicio</span>
+            <span class="detail-row__value" id="pwd-created">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- General indications (static for MVP) -->
+      <div class="indications">
+        <div class="indications__title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          Indicaciones generales
+        </div>
+        <div class="indications__item">Mantenga la zona limpia y seca según las indicaciones de su profesional de salud.</div>
+        <div class="indications__item">No retire los apósitos sin autorización médica o de enfermería.</div>
+        <div class="indications__item">Consulte inmediatamente si observa aumento de dolor, enrojecimiento o secreción.</div>
+        <div class="indications__item">Asista puntualmente a sus citas de seguimiento.</div>
+      </div>
+
+      <!-- Treatment history (read-only) -->
+      <h3 style="margin:var(--sp-5) 0 var(--sp-3);font-size:var(--text-md);color:var(--clr-slate-700);">
+        Historial de curaciones
+      </h3>
+      <div id="pwd-treatments">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+  </main>
+</div><!-- /app-shell -->
+
+<!-- ── Scripts ───────────────────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/router.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/patients.js"></script>
+<script src="js/wounds.js"></script>
+<script src="js/treatments.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  let _patientData = null;
+  let _wounds      = [];
+
+  // ── Init ─────────────────────────────────────────
+  (async function init() {
+    // Route guard: only patients
+    const user = await window.CURA360.auth.protectRoute(['patient']);
+    if (!user) return;
+
+    // Fetch patient record where the patient's user id matches
+    // In this MVP the patient's user.id IS the patient record id
+    // (set up during onboarding). We query by matching the auth user id.
+    const { data: patientRow } = await window.CURA360.supabase
+      .from('patients')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (!patientRow) {
+      // Fallback: try to find a patient linked by email or just show empty state
+      window.CURA360.showToast('No se encontró su ficha de paciente. Contacte a su profesional.');
+      window.CURA360.setLoader(false);
+      return;
+    }
+
+    _patientData = patientRow;
+
+    // Populate hero
+    document.getElementById('hero-avatar').textContent = window.CURA360.getInitials(patientRow.name);
+    document.getElementById('hero-name').textContent   = patientRow.name;
+    document.getElementById('hero-sub').textContent    = 'Paciente · ' + user.email;
+
+    // Populate info card
+    document.getElementById('p-age').textContent           = patientRow.age + ' años';
+    document.getElementById('p-diagnosis').textContent     = patientRow.diagnosis || '—';
+    document.getElementById('p-comorbidities').textContent = patientRow.comorbidities || '—';
+
+    // Load wounds
+    _wounds = await window.CURA360.wounds.listByPatient(patientRow.id);
+    _renderWounds();
+
+    // Hide loader
+    window.CURA360.setLoader(false);
+  })();
+
+  // ── Render wound list ───────────────────────────────
+  function _renderWounds() {
+    const container = document.getElementById('patient-wounds');
+    if (_wounds.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state" style="padding:var(--sp-8) var(--sp-4);">
+          <div class="empty-state__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
+            </svg>
+          </div>
+          <div class="empty-state__title">Sin heridas registradas</div>
+          <p class="empty-state__text">Su profesional de salud aparecerá aquí cuando registre información sobre sus heridas.</p>
+        </div>`;
+    } else {
+      const statusMap  = { active:'badge--active', pending:'badge--pending', critical:'badge--critical', closed:'badge--closed' };
+      const statusLabel= { active:'Activa', pending:'En evaluación', critical:'Crítica', closed:'Cerrada' };
+
+      container.innerHTML = _wounds.map(w => `
+        <a class="list-item" data-wound-id="${w.id}" role="button" tabindex="0" style="cursor:pointer;">
+          <div class="list-item__avatar list-item__avatar--wound">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
+            </svg>
+          </div>
+          <div class="list-item__content">
+            <div class="list-item__name">${w.type}</div>
+            <div class="list-item__meta">${w.location}${w.dimensions ? ' · ' + w.dimensions : ''}</div>
+          </div>
+          <span class="badge ${statusMap[w.status] || 'badge--active'}">${statusLabel[w.status] || w.status}</span>
+        </a>
+      `).join('');
+    }
+  }
+
+  // ── Wound detail (inline expand) ─────────────────
+  document.getElementById('patient-wounds').addEventListener('click', async (e) => {
+    const item = e.target.closest('[data-wound-id]');
+    if (!item) return;
+
+    const woundId = item.getAttribute('data-wound-id');
+    const wound = _wounds.find(w => w.id === woundId);
+    if (!wound) return;
+
+    // Populate detail
+    document.getElementById('pwd-type').textContent      = wound.type;
+    document.getElementById('pwd-location').textContent  = wound.location;
+    document.getElementById('pwd-dimensions').textContent= wound.dimensions || '—';
+    document.getElementById('pwd-created').textContent   = window.CURA360.formatDate(wound.created_at);
+
+    const statusMap  = { active:'badge--active', pending:'badge--pending', critical:'badge--critical', closed:'badge--closed' };
+    const statusLabel= { active:'Activa', pending:'En evaluación', critical:'Crítica', closed:'Cerrada' };
+    const badge = document.getElementById('pwd-status');
+    badge.className = 'badge ' + (statusMap[wound.status] || 'badge--active');
+    badge.textContent = statusLabel[wound.status] || wound.status;
+
+    // Load treatments
+    const treatments = await window.CURA360.treatments.listByWound(woundId);
+    const tContainer = document.getElementById('pwd-treatments');
+    if (treatments.length === 0) {
+      tContainer.innerHTML = `<p style="color:var(--clr-slate-500);font-size:var(--text-sm);text-align:center;padding:var(--sp-6) 0;">Sin curaciones registradas aún.</p>`;
+    } else {
+      tContainer.innerHTML = '<div class="timeline">' +
+        treatments.map(t => `
+          <div class="timeline-item">
+            <div class="timeline-item__card">
+              <div class="timeline-item__date">${window.CURA360.formatDate(t.created_at)}</div>
+              <div class="timeline-item__technique">${t.technique}</div>
+              ${t.supplies ? '<div class="timeline-item__detail"><strong>Insumos:</strong> ' + t.supplies + '</div>' : ''}
+              ${t.notes ? '<div class="timeline-item__detail" style="margin-top:var(--sp-2);"><strong>Observaciones:</strong> ' + t.notes + '</div>' : ''}
+            </div>
+          </div>
+        `).join('') +
+      '</div>';
+    }
+
+    // Show detail, hide wound list
+    document.getElementById('patient-wounds').style.display = 'none';
+    document.getElementById('wound-detail-section').style.display = 'block';
+  });
+
+  // ── Close wound detail ──────────────────────────────
+  document.getElementById('btn-close-wound-detail').addEventListener('click', () => {
+    document.getElementById('wound-detail-section').style.display = 'none';
+    document.getElementById('patient-wounds').style.display = 'block';
+  });
+
+  // ── Logout buttons ──────────────────────────────────
+  ['btn-logout', 'btn-logout-hero'].forEach(id => {
+    document.getElementById(id).addEventListener('click', () => window.CURA360.auth.logout());
+  });
+
+})();
+</script>
+</body>
+</html>

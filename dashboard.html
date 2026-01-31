@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1923" />
+  <title>Cura360 — Dashboard</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<!-- ── Full-page loader ─────────────────────────────── -->
+<div class="loader-overlay" id="loader">
+  <div class="spinner"></div>
+</div>
+
+<!-- ── App shell ────────────────────────────────────── -->
+<div class="app-shell">
+
+  <!-- Mobile top bar -->
+  <header class="topbar">
+    <a href="dashboard.html" class="topbar__logo">
+      <div class="topbar__logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <span class="topbar__logo-text">Cura<span>360</span></span>
+    </a>
+    <div class="topbar__actions">
+      <button class="topbar__btn" id="btn-logout" aria-label="Cerrar sesión">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Desktop sidebar -->
+  <nav class="sidebar" aria-label="Navigación principal">
+    <a href="dashboard.html" class="sidebar__logo">
+      <div class="sidebar__logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <span class="sidebar__logo-text">Cura<span>360</span></span>
+    </a>
+
+    <div class="sidebar__nav">
+      <a href="#dashboard"  class="sidebar__nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        Dashboard
+      </a>
+      <a href="#patients" class="sidebar__nav-item" data-page="patients">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Pacientes
+      </a>
+      <a href="#wounds" class="sidebar__nav-item" data-page="wounds">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 8v8M8 12h8"/>
+        </svg>
+        Heridas
+      </a>
+    </div>
+
+    <div class="sidebar__footer">
+      <button class="sidebar__user" id="btn-logout-sidebar" aria-label="Cerrar sesión">
+        <div class="sidebar__avatar" id="sidebar-avatar">P</div>
+        <div class="sidebar__user-info">
+          <div class="sidebar__user-name" id="sidebar-email">—</div>
+          <div class="sidebar__user-role">Profesional</div>
+        </div>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main-content" id="main-content" role="main">
+
+    <!-- ═══ VIEW: Dashboard ═══ -->
+    <section id="view-dashboard">
+      <div class="page-header">
+        <div>
+          <h1 class="page-header__title">Dashboard</h1>
+          <p class="page-header__sub">Resumen de actividad clínica</p>
+        </div>
+        <button class="btn btn--primary btn--sm" id="btn-new-patient">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Paciente
+        </button>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card__accent stat-card__accent--teal"></div>
+          <div class="stat-card__icon stat-card__icon--teal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div class="stat-card__value" id="stat-patients">0</div>
+          <div class="stat-card__label">Pacientes activos</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card__accent stat-card__accent--red"></div>
+          <div class="stat-card__icon stat-card__icon--red">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+          <div class="stat-card__value" id="stat-wounds">0</div>
+          <div class="stat-card__label">Heridas en seguimiento</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card__accent stat-card__accent--green"></div>
+          <div class="stat-card__icon stat-card__icon--green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div class="stat-card__value" id="stat-treatments">0</div>
+          <div class="stat-card__label">Curaciones realizadas</div>
+        </div>
+      </div>
+
+      <!-- Recent patients list (preview) -->
+      <div class="card">
+        <div class="card__header">
+          <span class="card__title">Pacientes recientes</span>
+          <a href="#patients" class="btn btn--ghost btn--sm" data-page="patients">Ver todos</a>
+        </div>
+        <div class="card__body" id="recent-patients">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ VIEW: Patients ═══ -->
+    <section id="view-patients" style="display:none;">
+      <div class="page-header">
+        <div>
+          <h1 class="page-header__title">Pacientes</h1>
+          <p class="page-header__sub">Lista de pacientes asignados</p>
+        </div>
+        <button class="btn btn--primary btn--sm" id="btn-new-patient-2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo
+        </button>
+      </div>
+      <div id="patients-list">
+        <!-- populated by JS -->
+      </div>
+    </section>
+
+    <!-- ═══ VIEW: Wounds (all wounds across patients) ═══ -->
+    <section id="view-wounds" style="display:none;">
+      <div class="page-header">
+        <div>
+          <h1 class="page-header__title">Heridas</h1>
+          <p class="page-header__sub">Todas las heridas en seguimiento</p>
+        </div>
+      </div>
+      <div id="wounds-list">
+        <!-- populated by JS -->
+      </div>
+    </section>
+
+    <!-- ═══ VIEW: Patient Detail ═══ -->
+    <section id="view-patient-detail" style="display:none;">
+      <div class="page-header">
+        <button class="btn btn--ghost btn--sm" id="btn-back-patients">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Volver
+        </button>
+      </div>
+
+      <!-- Patient info card -->
+      <div class="card" style="margin-bottom:var(--sp-4);">
+        <div class="card__header">
+          <div style="display:flex;align-items:center;gap:var(--sp-3);">
+            <div class="list-item__avatar list-item__avatar--patient" id="detail-avatar" style="width:52px;height:52px;font-size:var(--text-lg);">JD</div>
+            <div>
+              <div class="card__title" id="detail-name">—</div>
+              <span class="badge badge--professional" style="margin-top:4px;">Paciente activo</span>
+            </div>
+          </div>
+          <button class="btn btn--primary btn--sm" id="btn-new-wound">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Herida
+          </button>
+        </div>
+        <div class="card__body">
+          <div class="detail-row">
+            <span class="detail-row__label">Edad</span>
+            <span class="detail-row__value" id="detail-age">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Diagnóstico</span>
+            <span class="detail-row__value" id="detail-diagnosis">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Comorbilidades</span>
+            <span class="detail-row__value" id="detail-comorbidities">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patient's wounds -->
+      <h3 style="margin-bottom:var(--sp-3);font-size:var(--text-md);">Heridas registradas</h3>
+      <div id="detail-wounds-list">
+        <!-- populated by JS -->
+      </div>
+    </section>
+
+    <!-- ═══ VIEW: Wound Detail ═══ -->
+    <section id="view-wound-detail" style="display:none;">
+      <div class="page-header">
+        <button class="btn btn--ghost btn--sm" id="btn-back-wound">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Volver
+        </button>
+      </div>
+
+      <div class="card" style="margin-bottom:var(--sp-4);">
+        <div class="card__header">
+          <div style="display:flex;align-items:center;gap:var(--sp-3);">
+            <div class="list-item__avatar list-item__avatar--wound" style="width:48px;height:48px;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
+              </svg>
+            </div>
+            <div>
+              <div class="card__title" id="wd-type">—</div>
+              <span class="badge badge--active" id="wd-status-badge">Activa</span>
+            </div>
+          </div>
+        </div>
+        <div class="card__body">
+          <div class="detail-row">
+            <span class="detail-row__label">Ubicación</span>
+            <span class="detail-row__value" id="wd-location">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Dimensiones</span>
+            <span class="detail-row__value" id="wd-dimensions">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Fecha de inicio</span>
+            <span class="detail-row__value" id="wd-created">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Paciente</span>
+            <span class="detail-row__value" id="wd-patient">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add treatment button -->
+      <button class="btn btn--primary btn--full" id="btn-new-treatment" style="margin-bottom:var(--sp-5);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Registrar curación
+      </button>
+
+      <!-- Treatment timeline -->
+      <h3 style="margin-bottom:var(--sp-3);font-size:var(--text-md);">Historial de curaciones</h3>
+      <div id="wd-treatments">
+        <!-- populated by JS -->
+      </div>
+    </section>
+
+  </main><!-- /main-content -->
+
+  <!-- Mobile bottom nav -->
+  <nav class="bottom-nav" aria-label="Navigación">
+    <a href="#dashboard" class="bottom-nav__item active" data-page="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      Dashboard
+    </a>
+    <a href="#patients" class="bottom-nav__item" data-page="patients">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+      </svg>
+      Pacientes
+    </a>
+    <a href="#wounds" class="bottom-nav__item" data-page="wounds">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
+      </svg>
+      Heridas
+    </a>
+  </nav>
+</div><!-- /app-shell -->
+
+<!-- ═══════════ MODALS ═══════════════════════════════════ -->
+
+<!-- Modal: Create Patient -->
+<div class="modal-overlay" id="modal-patient">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-patient-title">
+    <div class="modal__handle"></div>
+    <div class="modal__header">
+      <h2 class="modal__title" id="modal-patient-title">Nuevo paciente</h2>
+      <button class="modal__close" id="btn-close-patient" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      <form id="form-patient" novalidate>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="p-name">Nombre completo <span class="required">*</span></label>
+            <input class="form-input" type="text" id="p-name" placeholder="Juan Pérez" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-age">Edad <span class="required">*</span></label>
+            <input class="form-input" type="number" id="p-age" placeholder="45" min="0" max="120" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="p-diagnosis">Diagnóstico</label>
+          <input class="form-input" type="text" id="p-diagnosis" placeholder="Ej: Úlcera por presión" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="p-comorbidities">Comorbilidades</label>
+          <textarea class="form-input" id="p-comorbidities" placeholder="Ej: Diabetes tipo 2, Hipertensión" rows="3"></textarea>
+        </div>
+        <button class="btn btn--primary btn--full" type="submit">Crear paciente</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Create Wound -->
+<div class="modal-overlay" id="modal-wound">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-wound-title">
+    <div class="modal__handle"></div>
+    <div class="modal__header">
+      <h2 class="modal__title" id="modal-wound-title">Nueva herida</h2>
+      <button class="modal__close" id="btn-close-wound" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      <form id="form-wound" novalidate>
+        <input type="hidden" id="w-patient-id" />
+        <div class="form-group">
+          <label class="form-label" for="w-type">Tipo de herida <span class="required">*</span></label>
+          <select class="form-input" id="w-type" required>
+            <option value="" disabled selected>Seleccione...</option>
+            <option value="Úlcera por presión">Úlcera por presión</option>
+            <option value="Herida quirúrgica">Herida quirúrgica</option>
+            <option value="Herida traumática">Herida traumática</option>
+            <option value="Úlcera venosa">Úlcera venosa</option>
+            <option value="Quemadura">Quemadura</option>
+            <option value="Herida diabética">Herida diabética</option>
+            <option value="Otra">Otra</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="w-location">Ubicación anatómica <span class="required">*</span></label>
+          <select class="form-input" id="w-location" required>
+            <option value="" disabled selected>Seleccione...</option>
+            <option value="Espalda">Espalda</option>
+            <option value="Talón">Talón</option>
+            <option value="Rodilla">Rodilla</option>
+            <option value="Cadera">Cadera</option>
+            <option value="Abdomen">Abdomen</option>
+            <option value="Pierna inferior">Pierna inferior</option>
+            <option value="Pie">Pie</option>
+            <option value="Cabeza">Cabeza</option>
+            <option value="Otra">Otra</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="w-dimensions">Dimensiones (cm)</label>
+          <input class="form-input" type="text" id="w-dimensions" placeholder="Ej: 3 x 5 cm" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="w-status">Estado clínico <span class="required">*</span></label>
+          <select class="form-input" id="w-status" required>
+            <option value="active">Activa</option>
+            <option value="pending">En evaluación</option>
+            <option value="critical">Crítica</option>
+            <option value="closed">Cerrada</option>
+          </select>
+        </div>
+        <button class="btn btn--primary btn--full" type="submit">Registrar herida</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Create Treatment -->
+<div class="modal-overlay" id="modal-treatment">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-treatment-title">
+    <div class="modal__handle"></div>
+    <div class="modal__header">
+      <h2 class="modal__title" id="modal-treatment-title">Nueva curación</h2>
+      <button class="modal__close" id="btn-close-treatment" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      <form id="form-treatment" novalidate>
+        <input type="hidden" id="t-wound-id" />
+        <div class="form-group">
+          <label class="form-label" for="t-technique">Técnica de curación <span class="required">*</span></label>
+          <select class="form-input" id="t-technique" required>
+            <option value="" disabled selected>Seleccione...</option>
+            <option value="Cura seca">Cura seca</option>
+            <option value="Cura húmeda">Cura húmeda</option>
+            <option value="Cura con apósito de plata">Cura con apósito de plata</option>
+            <option value="Cura con gel">Cura con gel</option>
+            <option value="Desbridamiento">Desbridamiento</option>
+            <option value="Otra">Otra</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="t-supplies">Insumos utilizados</label>
+          <textarea class="form-input" id="t-supplies" placeholder="Ej: Apósito de espuma, Suero fisiológico 0.9%" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="t-notes">Observaciones clínicas</label>
+          <textarea class="form-input" id="t-notes" placeholder="Estado de la herida, evolución observada..." rows="3"></textarea>
+        </div>
+        <button class="btn btn--primary btn--full" type="submit">Registrar curación</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── Scripts ───────────────────────────────────────────── -->
+<script src="js/supabase.js"></script>
+<script src="js/router.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/patients.js"></script>
+<script src="js/wounds.js"></script>
+<script src="js/treatments.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ── State ──────────────────────────────────────────
+  let _selectedPatientId = null;   // tracks the patient in detail view
+  let _selectedWoundId   = null;   // tracks the wound in detail view
+  let _allPatients       = [];     // cached patient list
+
+  // ── Init ───────────────────────────────────────────
+  (async function init() {
+    // Route guard: only professionals
+    const user = await window.CURA360.auth.protectRoute(['professional']);
+    if (!user) return; // redirect handled
+
+    // Update sidebar user info
+    document.getElementById('sidebar-email').textContent = user.email;
+    document.getElementById('sidebar-avatar').textContent =
+      window.CURA360.getInitials(user.email.split('@')[0]);
+
+    // Bind navigation
+    _bindNavigation();
+    // Bind modals
+    _bindModals();
+    // Load dashboard data
+    await _loadDashboard();
+    // Hide loader
+    window.CURA360.setLoader(false);
+  })();
+
+  // ── Navigation (SPA-like view switching) ───────────
+  function _bindNavigation() {
+    // All nav links with data-page attribute
+    document.querySelectorAll('[data-page]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        _navigateTo(link.getAttribute('data-page'));
+      });
+    });
+
+    // Back buttons
+    document.getElementById('btn-back-patients').addEventListener('click', () => _navigateTo('patients'));
+    document.getElementById('btn-back-wound').addEventListener('click', () => {
+      // Go back to patient detail if we have a selected patient
+      if (_selectedPatientId) {
+        _navigateTo('patient-detail');
+      } else {
+        _navigateTo('wounds');
+      }
+    });
+  }
+
+  /**
+   * Switches the visible view section.
+   * @param {string} page - 'dashboard' | 'patients' | 'wounds' | 'patient-detail' | 'wound-detail'
+   */
+  async function _navigateTo(page) {
+    // Hide all views
+    document.querySelectorAll('[id^="view-"]').forEach(v => v.style.display = 'none');
+
+    // Update nav active states
+    document.querySelectorAll('[data-page]').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll(`[data-page="${page}"]`).forEach(n => n.classList.add('active'));
+
+    switch (page) {
+      case 'dashboard':
+        document.getElementById('view-dashboard').style.display = 'block';
+        await _loadDashboard();
+        break;
+      case 'patients':
+        document.getElementById('view-patients').style.display = 'block';
+        await _loadPatientsList();
+        break;
+      case 'wounds':
+        document.getElementById('view-wounds').style.display = 'block';
+        await _loadAllWounds();
+        break;
+      case 'patient-detail':
+        document.getElementById('view-patient-detail').style.display = 'block';
+        await _loadPatientDetail(_selectedPatientId);
+        break;
+      case 'wound-detail':
+        document.getElementById('view-wound-detail').style.display = 'block';
+        await _loadWoundDetail(_selectedWoundId);
+        break;
+    }
+  }
+
+  // ── Dashboard loader ───────────────────────────────
+  async function _loadDashboard() {
+    _allPatients = await window.CURA360.patients.list();
+
+    // Gather all wounds
+    let allWounds = [];
+    let allTreatments = [];
+    for (const p of _allPatients) {
+      const wounds = await window.CURA360.wounds.listByPatient(p.id);
+      allWounds = allWounds.concat(wounds);
+      for (const w of wounds) {
+        const treatments = await window.CURA360.treatments.listByWound(w.id);
+        allTreatments = allTreatments.concat(treatments);
+      }
+    }
+
+    // Update stats
+    document.getElementById('stat-patients').textContent   = _allPatients.length;
+    document.getElementById('stat-wounds').textContent     = allWounds.length;
+    document.getElementById('stat-treatments').textContent = allTreatments.length;
+
+    // Render recent patients (last 4)
+    const container = document.getElementById('recent-patients');
+    if (_allPatients.length === 0) {
+      container.innerHTML = _emptyStateHTML('No hay pacientes', 'Cree su primer paciente para comenzar.');
+    } else {
+      container.innerHTML = _allPatients.slice(0, 4).map(p => _patientItemHTML(p)).join('');
+    }
+  }
+
+  // ── Patients list ──────────────────────────────────
+  async function _loadPatientsList() {
+    _allPatients = await window.CURA360.patients.list();
+    const container = document.getElementById('patients-list');
+    if (_allPatients.length === 0) {
+      container.innerHTML = _emptyStateHTML('Sin pacientes', 'Agregue su primer paciente usando el botón de arriba.');
+    } else {
+      container.innerHTML = _allPatients.map(p => _patientItemHTML(p)).join('');
+    }
+  }
+
+  // ── All wounds ─────────────────────────────────────
+  async function _loadAllWounds() {
+    if (_allPatients.length === 0) {
+      _allPatients = await window.CURA360.patients.list();
+    }
+
+    let allWounds = [];
+    // Attach patient name for display
+    for (const p of _allPatients) {
+      const wounds = await window.CURA360.wounds.listByPatient(p.id);
+      wounds.forEach(w => { w._patientName = p.name; });
+      allWounds = allWounds.concat(wounds);
+    }
+
+    const container = document.getElementById('wounds-list');
+    if (allWounds.length === 0) {
+      container.innerHTML = _emptyStateHTML('Sin heridas', 'Las heridas aparecen cuando las agrega desde la ficha de un paciente.');
+    } else {
+      container.innerHTML = allWounds.map(w => _woundItemHTML(w, true)).join('');
+    }
+  }
+
+  // ── Patient detail ─────────────────────────────────
+  async function _loadPatientDetail(patientId) {
+    const patient = await window.CURA360.patients.getById(patientId);
+    if (!patient) { _navigateTo('patients'); return; }
+
+    document.getElementById('detail-avatar').textContent = window.CURA360.getInitials(patient.name);
+    document.getElementById('detail-name').textContent        = patient.name;
+    document.getElementById('detail-age').textContent         = patient.age + ' años';
+    document.getElementById('detail-diagnosis').textContent   = patient.diagnosis || '—';
+    document.getElementById('detail-comorbidities').textContent = patient.comorbidities || '—';
+
+    // Load wounds for this patient
+    const wounds = await window.CURA360.wounds.listByPatient(patientId);
+    const wContainer = document.getElementById('detail-wounds-list');
+    if (wounds.length === 0) {
+      wContainer.innerHTML = _emptyStateHTML('Sin heridas', 'Agregue una herida para este paciente.');
+    } else {
+      wContainer.innerHTML = wounds.map(w => _woundItemHTML(w, false)).join('');
+    }
+  }
+
+  // ── Wound detail ───────────────────────────────────
+  async function _loadWoundDetail(woundId) {
+    const wound = await window.CURA360.wounds.getById(woundId);
+    if (!wound) { _navigateTo('wounds'); return; }
+
+    // Find patient name
+    const patient = await window.CURA360.patients.getById(wound.patient_id);
+
+    document.getElementById('wd-type').textContent       = wound.type;
+    document.getElementById('wd-location').textContent   = wound.location;
+    document.getElementById('wd-dimensions').textContent = wound.dimensions || '—';
+    document.getElementById('wd-created').textContent    = window.CURA360.formatDate(wound.created_at);
+    document.getElementById('wd-patient').textContent    = patient ? patient.name : '—';
+
+    // Status badge
+    const statusMap = { active:'badge--active', pending:'badge--pending', critical:'badge--critical', closed:'badge--closed' };
+    const statusLabel = { active:'Activa', pending:'En evaluación', critical:'Crítica', closed:'Cerrada' };
+    const badge = document.getElementById('wd-status-badge');
+    badge.className = 'badge ' + (statusMap[wound.status] || 'badge--active');
+    badge.textContent = statusLabel[wound.status] || wound.status;
+
+    // Load treatments
+    const treatments = await window.CURA360.treatments.listByWound(woundId);
+    const tContainer = document.getElementById('wd-treatments');
+    if (treatments.length === 0) {
+      tContainer.innerHTML = _emptyStateHTML('Sin curaciones', 'Registre la primera curación usando el botón de arriba.');
+    } else {
+      tContainer.innerHTML = '<div class="timeline">' +
+        treatments.map(t => `
+          <div class="timeline-item">
+            <div class="timeline-item__card">
+              <div class="timeline-item__date">${window.CURA360.formatDate(t.created_at)}</div>
+              <div class="timeline-item__technique">${t.technique}</div>
+              ${t.supplies ? '<div class="timeline-item__detail"><strong>Insumos:</strong> ' + t.supplies + '</div>' : ''}
+              ${t.notes ? '<div class="timeline-item__detail" style="margin-top:var(--sp-2);"><strong>Observaciones:</strong> ' + t.notes + '</div>' : ''}
+            </div>
+          </div>
+        `).join('') +
+      '</div>';
+    }
+  }
+
+  // ── Modal bindings ─────────────────────────────────
+  function _bindModals() {
+    // Open patient modal
+    ['btn-new-patient', 'btn-new-patient-2'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.addEventListener('click', () => window.CURA360.openModal('modal-patient'));
+    });
+    document.getElementById('btn-close-patient').addEventListener('click', () => window.CURA360.closeModal('modal-patient'));
+
+    // Open wound modal
+    document.getElementById('btn-new-wound').addEventListener('click', () => {
+      document.getElementById('w-patient-id').value = _selectedPatientId;
+      window.CURA360.openModal('modal-wound');
+    });
+    document.getElementById('btn-close-wound').addEventListener('click', () => window.CURA360.closeModal('modal-wound'));
+
+    // Open treatment modal
+    document.getElementById('btn-new-treatment').addEventListener('click', () => {
+      document.getElementById('t-wound-id').value = _selectedWoundId;
+      window.CURA360.openModal('modal-treatment');
+    });
+    document.getElementById('btn-close-treatment').addEventListener('click', () => window.CURA360.closeModal('modal-treatment'));
+
+    // ── Form submissions ─────────────────────────────
+    // Patient form
+    document.getElementById('form-patient').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        name:          document.getElementById('p-name').value.trim(),
+        age:           document.getElementById('p-age').value,
+        diagnosis:     document.getElementById('p-diagnosis').value.trim(),
+        comorbidities: document.getElementById('p-comorbidities').value.trim()
+      };
+      if (!data.name || !data.age) {
+        window.CURA360.showToast('Nombre y edad son obligatorios.');
+        return;
+      }
+      const result = await window.CURA360.patients.create(data);
+      if (result) {
+        window.CURA360.closeModal('modal-patient');
+        document.getElementById('form-patient').reset();
+        await _loadDashboard();
+      }
+    });
+
+    // Wound form
+    document.getElementById('form-wound').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const patientId = document.getElementById('w-patient-id').value;
+      const data = {
+        type:       document.getElementById('w-type').value,
+        location:   document.getElementById('w-location').value,
+        dimensions: document.getElementById('w-dimensions').value.trim(),
+        status:     document.getElementById('w-status').value
+      };
+      if (!data.type || !data.location) {
+        window.CURA360.showToast('Tipo y ubicación son obligatorios.');
+        return;
+      }
+      const result = await window.CURA360.wounds.create(patientId, data);
+      if (result) {
+        window.CURA360.closeModal('modal-wound');
+        document.getElementById('form-wound').reset();
+        // Reload current view
+        if (_selectedPatientId) await _loadPatientDetail(_selectedPatientId);
+      }
+    });
+
+    // Treatment form
+    document.getElementById('form-treatment').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const woundId = document.getElementById('t-wound-id').value;
+      const data = {
+        technique: document.getElementById('t-technique').value,
+        supplies:  document.getElementById('t-supplies').value.trim(),
+        notes:     document.getElementById('t-notes').value.trim()
+      };
+      if (!data.technique) {
+        window.CURA360.showToast('La técnica de curación es obligatoria.');
+        return;
+      }
+      const result = await window.CURA360.treatments.create(woundId, data);
+      if (result) {
+        window.CURA360.closeModal('modal-treatment');
+        document.getElementById('form-treatment').reset();
+        await _loadWoundDetail(_selectedWoundId);
+      }
+    });
+  }
+
+  // ── Logout ─────────────────────────────────────────
+  ['btn-logout', 'btn-logout-sidebar'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', () => window.CURA360.auth.logout());
+  });
+
+  // ── HTML Builders ──────────────────────────────────
+  function _patientItemHTML(p) {
+    return `
+      <a class="list-item list-item--link" data-patient-id="${p.id}" role="button" tabindex="0">
+        <div class="list-item__avatar list-item__avatar--patient">${window.CURA360.getInitials(p.name)}</div>
+        <div class="list-item__content">
+          <div class="list-item__name">${p.name}</div>
+          <div class="list-item__meta">Edad: ${p.age} · ${p.diagnosis || 'Sin diagnóstico'}</div>
+        </div>
+        <svg class="list-item__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>`;
+  }
+
+  function _woundItemHTML(w, showPatient) {
+    const statusMap  = { active:'badge--active', pending:'badge--pending', critical:'badge--critical', closed:'badge--closed' };
+    const statusLabel= { active:'Activa', pending:'En evaluación', critical:'Crítica', closed:'Cerrada' };
+    return `
+      <a class="list-item list-item--link" data-wound-id="${w.id}" data-patient-id="${w.patient_id}" role="button" tabindex="0">
+        <div class="list-item__avatar list-item__avatar--wound">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
+          </svg>
+        </div>
+        <div class="list-item__content">
+          <div class="list-item__name">${w.type}</div>
+          <div class="list-item__meta">${w.location}${w.dimensions ? ' · ' + w.dimensions : ''}${showPatient && w._patientName ? ' · ' + w._patientName : ''}</div>
+        </div>
+        <span class="badge ${statusMap[w.status] || 'badge--active'}">${statusLabel[w.status] || w.status}</span>
+      </a>`;
+  }
+
+  function _emptyStateHTML(title, text) {
+    return `
+      <div class="empty-state">
+        <div class="empty-state__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <div class="empty-state__title">${title}</div>
+        <p class="empty-state__text">${text}</p>
+      </div>`;
+  }
+
+  // ── Event delegation for list-item clicks ──────────
+  document.getElementById('main-content').addEventListener('click', (e) => {
+    // Patient item click → navigate to detail
+    const patientItem = e.target.closest('[data-patient-id]');
+    if (patientItem && !patientItem.hasAttribute('data-wound-id')) {
+      _selectedPatientId = patientItem.getAttribute('data-patient-id');
+      _navigateTo('patient-detail');
+      return;
+    }
+
+    // Wound item click → navigate to wound detail
+    const woundItem = e.target.closest('[data-wound-id]');
+    if (woundItem) {
+      _selectedWoundId   = woundItem.getAttribute('data-wound-id');
+      _selectedPatientId = woundItem.getAttribute('data-patient-id');
+      _navigateTo('wound-detail');
+      return;
+    }
+  });
+
+})();
+</script>
+</body>
+</html>

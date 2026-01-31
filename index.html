@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Cura360 — Sistema de gestión y seguimiento clínico de heridas" />
+  <meta name="theme-color" content="#0f1923" />
+  <title>Cura360 — Inicio de sesión</title>
+
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.json" />
+  <!-- iOS PWA -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
+  <!-- Supabase JS SDK - desde CDN oficial -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<!-- ── Login page ─────────────────────────────────────── -->
+<main class="login-page" role="main">
+  <div class="login-card">
+
+    <!-- Logo -->
+    <div class="login-card__logo">
+      <div class="login-card__logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+      </div>
+      <div>
+        <div class="login-card__logo-text">Cura<span>360</span></div>
+        <div class="login-card__subtitle">Gestión clínica de heridas</div>
+      </div>
+    </div>
+
+    <!-- Role selector -->
+    <div class="role-toggle" role="group" aria-label="Seleccionar rol">
+      <button class="role-toggle__btn active" id="btn-role-professional"
+              data-role="professional" aria-pressed="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        Profesional
+      </button>
+      <button class="role-toggle__btn" id="btn-role-patient"
+              data-role="patient" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M20 21a8 8 0 1 0-16 0"/>
+        </svg>
+        Paciente
+      </button>
+    </div>
+
+    <!-- Login form -->
+    <form id="login-form" novalidate>
+      <div class="form-group" id="group-email">
+        <label class="form-label" for="input-email">
+          Correo electrónico <span class="required">*</span>
+        </label>
+        <input class="form-input" type="email" id="input-email"
+               name="email" placeholder="you@example.com"
+               autocomplete="email" required />
+        <span class="form-error" id="error-email">Ingrese un correo válido.</span>
+      </div>
+
+      <div class="form-group" id="group-password">
+        <label class="form-label" for="input-password">
+          Contraseña <span class="required">*</span>
+        </label>
+        <input class="form-input" type="password" id="input-password"
+               name="password" placeholder="••••••••"
+               autocomplete="current-password" required />
+        <span class="form-error" id="error-password">La contraseña es requerida.</span>
+      </div>
+
+      <button class="btn btn--primary btn--full" type="submit" id="login-btn">
+        Ingresar
+      </button>
+    </form>
+
+    <!-- Footer note -->
+    <p style="text-align:center; margin-top:var(--sp-5); font-size:var(--text-xs); color:var(--text-muted);">
+      Sistema exclusivo para uso profesional y pacientes registrados.
+    </p>
+  </div>
+</main>
+
+<!-- ── Scripts ──────────────────────────────────────────── -->
+<!-- Order matters: supabase.js → router.js → auth.js → page logic -->
+<script src="js/supabase.js"></script>
+<script src="js/router.js"></script>
+<script src="js/auth.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ── Role toggle behaviour ────────────────────────
+  const roleBtns = document.querySelectorAll('.role-toggle__btn');
+  roleBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      roleBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+    });
+  });
+
+  // ── Form submission ──────────────────────────────
+  const form = document.getElementById('login-form');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    // Clear previous errors
+    document.getElementById('group-email').classList.remove('has-error');
+    document.getElementById('group-password').classList.remove('has-error');
+
+    const email    = document.getElementById('input-email').value.trim();
+    const password = document.getElementById('input-password').value;
+
+    // Validate
+    let valid = true;
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      document.getElementById('group-email').classList.add('has-error');
+      valid = false;
+    }
+    if (!password) {
+      document.getElementById('group-password').classList.add('has-error');
+      valid = false;
+    }
+    if (!valid) return;
+
+    // Delegate to auth module
+    window.CURA360.auth.login(email, password);
+  });
+
+  // ── Auto-redirect if already logged in ──────────
+  (async function () {
+    const { data: { session } } = await window.CURA360.supabase.auth.getSession();
+    if (session) {
+      // Fetch role and redirect
+      const { data } = await window.CURA360.supabase
+        .from('profiles').select('role').eq('id', session.user.id).single();
+      const role = data ? data.role : 'patient';
+      window.location.href = role === 'professional' ? 'dashboard.html' : 'paciente.html';
+    }
+  })();
+
+})();
+</script>
+</body>
+</html>
