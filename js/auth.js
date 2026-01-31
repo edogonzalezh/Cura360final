@@ -1,10 +1,8 @@
 /**
- * auth.js — Authentication & session management
+ * auth.js — Authentication & session management (FETCH-ONLY VERSION)
  * ────────────────────────────────────────────────
- * • Login / Logout via Supabase Auth (email + password)
- * • Listens for auth state changes (onAuthStateChange)
- * • Fetches user role from the `profiles` table
- * • Route protection: redirects unauthenticated users
+ * Complete rewrite using fetch API directly.
+ * Does NOT use Supabase SDK for auth operations.
  *
  * Public API (attached to window.CURA360.auth):
  *   login(email, password)  → Promise<void>
@@ -16,52 +14,103 @@
 (function () {
   'use strict';
 
-  const sb = window.CURA360.supabase;
+  // ── Configuration ────────────────────────────────────
+  const SUPABASE_URL = 'https://ghzfnosevncivblpbful.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_zLely_K2mNNHQv82YeV40A_-Tj1XLDg';
+  const STORAGE_KEY = 'sb-ghzfnosevncivblpbful-auth-token';
 
   /** In-memory cache of the current user + role */
   let _currentUser = null;
 
-  // ── Toast helper (imported from router.js utilities) ──
+  // ── Toast helper ─────────────────────────────────────
   function showToast(msg, type = 'error') {
     if (window.CURA360.showToast) window.CURA360.showToast(msg, type);
   }
 
-  // ── Login ──────────────────────────────────────────
+  // ── Get stored session ───────────────────────────────
+  function getStoredSession() {
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (!data) return null;
+    try {
+      return JSON.parse(data);
+    } catch (err) {
+      console.error('[auth] Error parsing stored session:', err);
+      return null;
+    }
+  }
+
+  // ── Save session to storage ──────────────────────────
+  function saveSession(session) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  }
+
+  // ── Clear session ────────────────────────────────────
+  function clearSession() {
+    localStorage.removeItem(STORAGE_KEY);
+    _currentUser = null;
+  }
+
+  // ── Login using pure fetch ───────────────────────────
   /**
-   * Authenticates via email + password.
-   * On success, fetches the role from `profiles` and redirects.
+   * Authenticates via email + password using direct API call.
    * @param {string} email
    * @param {string} password
    */
   async function login(email, password) {
-    // Basic client-side validation
     if (!email || !password) {
       showToast('Por favor ingrese correo y contraseña.');
       return;
     }
 
-    // Disable button while request is in flight
     const loginBtn = document.getElementById('login-btn');
     if (loginBtn) loginBtn.disabled = true;
 
     try {
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) {
+      console.log('[auth] Starting login with fetch...');
+
+      // Call Supabase auth API directly
+      const response = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password
+        })
+      });
+
+      console.log('[auth] Login response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('[auth] Login error:', errorData);
         showToast('Credenciales incorrectas. Verifique su correo y contraseña.');
         if (loginBtn) loginBtn.disabled = false;
         return;
       }
 
-      console.log('[auth] Login successful, fetching role...');
+      const authData = await response.json();
+      console.log('[auth] Login successful, user ID:', authData.user.id);
 
-      // Fetch role from profiles table using direct fetch with token
-      const role = await _fetchRoleDirectly(data.user.id, data.session.access_token);
-      
+      // Save session to localStorage
+      saveSession(authData);
+
+      // Fetch role from profiles
+      console.log('[auth] Fetching role...');
+      const role = await _fetchRole(authData.user.id, authData.access_token);
       console.log('[auth] Role fetched:', role);
-      
-      _currentUser = { id: data.user.id, email: data.user.email, role };
+
+      _currentUser = { 
+        id: authData.user.id, 
+        email: authData.user.email, 
+        role: role 
+      };
 
       // Redirect based on role
+      console.log('[auth] Redirecting to:', role === 'professional' ? 'dashboard' : 'paciente');
+      
       if (role === 'professional') {
         window.location.href = 'dashboard.html';
       } else if (role === 'patient') {
@@ -77,49 +126,66 @@
     }
   }
 
-  // ── Logout ─────────────────────────────────────────
-  /**
-   * Signs out and clears local state.
-   */
+  // ── Logout ───────────────────────────────────────────
   async function logout() {
-    _currentUser = null;
-    await sb.auth.signOut();
+    const session = getStoredSession();
+    
+    if (session && session.access_token) {
+      // Call logout endpoint
+      try {
+        await fetch(SUPABASE_URL + '/auth/v1/logout', {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + session.access_token
+          }
+        });
+      } catch (err) {
+        console.error('[auth] logout error:', err);
+      }
+    }
+
+    clearSession();
     window.location.href = 'index.html';
   }
 
-  // ── Get current user ───────────────────────────────
-  /**
-   * Returns the cached user object or null.
-   * @returns {{ id: string, email: string, role: string } | null}
-   */
+  // ── Get current user ─────────────────────────────────
   function getCurrentUser() {
     return _currentUser;
   }
 
-  // ── Route protection ───────────────────────────────
+  // ── Route protection ─────────────────────────────────
   /**
-   * Call at the top of any protected page.
-   * Checks the active Supabase session; if none, redirects to login.
-   * If a role filter is provided and doesn't match, redirects accordingly.
-   *
-   * @param {string[]} [allowedRoles] - e.g. ['professional']
-   * @returns {Promise<{ id, email, role }>} the authenticated user
+   * Checks if user is authenticated and has the right role.
+   * @param {string[]} allowedRoles
+   * @returns {Promise<object|null>}
    */
   async function protectRoute(allowedRoles = []) {
-    const { data: { session } } = await sb.auth.getSession();
+    const session = getStoredSession();
 
-    if (!session) {
+    if (!session || !session.access_token) {
       window.location.href = 'index.html';
-      return null; // execution stops after redirect
+      return null;
     }
 
-    // Build user object
-    const role = await _fetchRole(session.user.id);
-    _currentUser = { id: session.user.id, email: session.user.email, role };
+    // Check if token is expired
+    const now = Math.floor(Date.now() / 1000);
+    if (session.expires_at && session.expires_at < now) {
+      clearSession();
+      window.location.href = 'index.html';
+      return null;
+    }
 
-    // Role check
+    // Fetch role
+    const role = await _fetchRole(session.user.id, session.access_token);
+    _currentUser = { 
+      id: session.user.id, 
+      email: session.user.email, 
+      role: role 
+    };
+
+    // Check role access
     if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
-      // Redirect patients trying to access professional pages and vice-versa
       if (role === 'patient') {
         window.location.href = 'paciente.html';
       } else {
@@ -131,78 +197,46 @@
     return _currentUser;
   }
 
-  // ── Internal: fetch role directly with token ────────
+  // ── Internal: fetch role ─────────────────────────────
   /**
-   * Queries the `profiles` table for the user's role using direct fetch.
-   * This is a workaround for the Supabase client not auto-attaching tokens correctly.
    * @param {string} userId
    * @param {string} accessToken
    * @returns {Promise<string>}
    */
-  async function _fetchRoleDirectly(userId, accessToken) {
-    console.log('[auth] _fetchRoleDirectly called with userId:', userId);
-    
+  async function _fetchRole(userId, accessToken) {
     try {
-      const url = 'https://ghzfnosevncivblpbful.supabase.co/rest/v1/profiles?id=eq.' + userId + '&select=role';
-      
-      console.log('[auth] Fetching from:', url);
-      
-      const response = await fetch(url, {
-        headers: {
-          'apikey': 'sb_publishable_zLely_K2mNNHQv82YeV40A_-Tj1XLDg',
-          'Authorization': 'Bearer ' + accessToken,
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        SUPABASE_URL + '/rest/v1/profiles?id=eq.' + userId + '&select=role',
+        {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + accessToken,
+            'Content-Type': 'application/json'
+          }
         }
-      });
-      
-      console.log('[auth] Response status:', response.status);
-      
+      );
+
       if (!response.ok) {
-        console.error('[auth] _fetchRoleDirectly HTTP error:', response.status);
+        console.error('[auth] _fetchRole HTTP error:', response.status);
         return 'patient';
       }
-      
+
       const data = await response.json();
-      console.log('[auth] _fetchRoleDirectly response:', data);
-      
       return (data && data[0] && data[0].role) ? data[0].role : 'patient';
     } catch (err) {
-      console.error('[auth] _fetchRoleDirectly error:', err);
+      console.error('[auth] _fetchRole error:', err);
       return 'patient';
     }
   }
 
-  /**
-   * Queries the `profiles` table for the user's role.
-   * Falls back to 'patient' if no profile exists.
-   * @param {string} userId
-   * @returns {Promise<string>}
-   */
-  async function _fetchRole(userId) {
-    const { data } = await sb.from('profiles').select('role').eq('id', userId).single();
-    return data ? data.role : 'patient';
-  }
-
-  // ── Auth state listener ────────────────────────────
-  /**
-   * Fires whenever the session changes (tab focus, token refresh, sign-out).
-   * Updates the cached user accordingly.
-   */
-  sb.auth.onAuthStateChange(async (event, session) => {
-    if (session) {
-      const role = await _fetchRole(session.user.id);
-      _currentUser = { id: session.user.id, email: session.user.email, role };
-    } else {
-      _currentUser = null;
-    }
-  });
-
-  // ── Expose public API ──────────────────────────────
+  // ── Expose public API ────────────────────────────────
   window.CURA360.auth = {
     login,
     logout,
     getCurrentUser,
     protectRoute
   };
+
+  console.log('[auth] Pure-fetch auth module loaded');
 
 })();
