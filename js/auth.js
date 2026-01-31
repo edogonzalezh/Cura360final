@@ -52,9 +52,13 @@
         return;
       }
 
+      console.log('[auth] Login successful, fetching role...');
+
       // Fetch role from profiles table using direct fetch with token
-      // (workaround for Supabase client not auto-attaching token correctly)
       const role = await _fetchRoleDirectly(data.user.id, data.session.access_token);
+      
+      console.log('[auth] Role fetched:', role);
+      
       _currentUser = { id: data.user.id, email: data.user.email, role };
 
       // Redirect based on role
@@ -127,7 +131,7 @@
     return _currentUser;
   }
 
-  // ── Internal: fetch role from profiles ─────────────
+  // ── Internal: fetch role directly with token ────────
   /**
    * Queries the `profiles` table for the user's role using direct fetch.
    * This is a workaround for the Supabase client not auto-attaching tokens correctly.
@@ -136,23 +140,35 @@
    * @returns {Promise<string>}
    */
   async function _fetchRoleDirectly(userId, accessToken) {
-    const SUPABASE_URL = sb.supabaseUrl;
-    const SUPABASE_KEY = sb.supabaseKey;
+    console.log('[auth] _fetchRoleDirectly called with userId:', userId);
     
     try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=role`, {
+      const url = 'https://ghzfnosevncivblpbful.supabase.co' + userId + '&select=role';
+      
+      console.log('[auth] Fetching from:', url);
+      
+      const response = await fetch(url, {
         headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${accessToken}`,
+          'apikey': 'sb_publishable_zLely_K2mNNHQv82YeV40A_-Tj1XLDg',
+          'Authorization': 'Bearer ' + accessToken,
           'Content-Type': 'application/json'
         }
       });
       
+      console.log('[auth] Response status:', response.status);
+      
+      if (!response.ok) {
+        console.error('[auth] _fetchRoleDirectly HTTP error:', response.status);
+        return 'patient';
+      }
+      
       const data = await response.json();
+      console.log('[auth] _fetchRoleDirectly response:', data);
+      
       return (data && data[0] && data[0].role) ? data[0].role : 'patient';
     } catch (err) {
       console.error('[auth] _fetchRoleDirectly error:', err);
-      return 'patient'; // fallback
+      return 'patient';
     }
   }
 
