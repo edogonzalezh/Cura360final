@@ -704,6 +704,9 @@
 
     // Load images
     await _loadWoundImages(woundId);
+    
+    // Bind image handlers (upload, gallery clicks)
+    _bindImageHandlers();
   }
 
   // ═══════════════════════════════════════════════════
@@ -750,60 +753,85 @@
   }
 
   // ── Handle image upload ──────────────────────────────
-  document.getElementById('image-upload-input').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Show loading
-    document.getElementById('image-upload-loading').classList.add('active');
-
-    // Upload
-    const result = await window.CURA360.images.upload(_selectedWoundId, file);
-
-    // Hide loading
-    document.getElementById('image-upload-loading').classList.remove('active');
-
-    if (result) {
-      // Reload gallery
-      await _loadWoundImages(_selectedWoundId);
-    }
-
-    // Reset input
-    e.target.value = '';
-  });
-
-  // ── Handle image click (view fullscreen) ─────────────
-  document.getElementById('wd-images-gallery').addEventListener('click', async (e) => {
-    const item = e.target.closest('.image-gallery-item');
-    if (!item) return;
-
-    // Check if delete button was clicked
-    const deleteBtn = e.target.closest('.image-gallery-item__delete');
-    if (deleteBtn) {
-      const imageId = deleteBtn.getAttribute('data-image-id');
-      const storagePath = deleteBtn.getAttribute('data-storage-path');
-      _confirmDeleteImage(imageId, storagePath);
-      return;
-    }
-
-    // Open viewer
-    const img = item.querySelector('.image-gallery-item__img');
-    const date = item.querySelector('.image-gallery-item__date').textContent;
+  // Bind handlers only when wound detail view is loaded
+  function _bindImageHandlers() {
+    const uploadInput = document.getElementById('image-upload-input');
+    const gallery = document.getElementById('wd-images-gallery');
     
-    document.getElementById('image-viewer-img').src = img.src;
-    document.getElementById('image-viewer-info').textContent = date;
-    document.getElementById('image-viewer').classList.add('open');
-  });
+    if (!uploadInput || !gallery) return; // Exit if elements don't exist
+
+    // Remove old listeners if any (prevents duplicates)
+    const newUploadInput = uploadInput.cloneNode(true);
+    uploadInput.parentNode.replaceChild(newUploadInput, uploadInput);
+    
+    const newGallery = gallery.cloneNode(true);
+    gallery.parentNode.replaceChild(newGallery, gallery);
+
+    // Upload handler
+    document.getElementById('image-upload-input').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // Show loading
+      document.getElementById('image-upload-loading').classList.add('active');
+
+      // Upload
+      const result = await window.CURA360.images.upload(_selectedWoundId, file);
+
+      // Hide loading
+      document.getElementById('image-upload-loading').classList.remove('active');
+
+      if (result) {
+        // Reload gallery
+        await _loadWoundImages(_selectedWoundId);
+      }
+
+      // Reset input
+      e.target.value = '';
+    });
+
+    // Gallery click handler (view/delete)
+    document.getElementById('wd-images-gallery').addEventListener('click', async (e) => {
+      const item = e.target.closest('.image-gallery-item');
+      if (!item) return;
+
+      // Check if delete button was clicked
+      const deleteBtn = e.target.closest('.image-gallery-item__delete');
+      if (deleteBtn) {
+        const imageId = deleteBtn.getAttribute('data-image-id');
+        const storagePath = deleteBtn.getAttribute('data-storage-path');
+        _confirmDeleteImage(imageId, storagePath);
+        return;
+      }
+
+      // Open viewer
+      const img = item.querySelector('.image-gallery-item__img');
+      const date = item.querySelector('.image-gallery-item__date').textContent;
+      
+      document.getElementById('image-viewer-img').src = img.src;
+      document.getElementById('image-viewer-info').textContent = date;
+      document.getElementById('image-viewer').classList.add('open');
+    });
+  }
 
   // ── Close image viewer ───────────────────────────────
-  document.getElementById('image-viewer-close').addEventListener('click', () => {
-    document.getElementById('image-viewer').classList.remove('open');
-  });
-  document.getElementById('image-viewer').addEventListener('click', (e) => {
-    if (e.target.id === 'image-viewer') {
-      document.getElementById('image-viewer').classList.remove('open');
-    }
-  });
+  // These elements exist always in the DOM
+  const imageViewer = document.getElementById('image-viewer');
+  const imageViewerClose = document.getElementById('image-viewer-close');
+  
+  if (imageViewerClose) {
+    imageViewerClose.addEventListener('click', () => {
+      imageViewer.classList.remove('open');
+    });
+  }
+  
+  if (imageViewer) {
+    imageViewer.addEventListener('click', (e) => {
+      if (e.target.id === 'image-viewer') {
+        imageViewer.classList.remove('open');
+      }
+    });
+  }
 
   // ── Delete image confirmation ────────────────────────
   function _confirmDeleteImage(imageId, storagePath) {
