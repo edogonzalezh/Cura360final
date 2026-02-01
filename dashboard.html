@@ -280,6 +280,31 @@
         </div>
       </div>
 
+      <!-- Image Gallery -->
+      <div class="card" style="margin-bottom:var(--sp-5);">
+        <div class="card__header">
+          <span class="card__title">📷 Registro fotográfico</span>
+          <span class="badge badge--active" id="wd-images-count">0 fotos</span>
+        </div>
+        <div class="card__body">
+          <!-- Upload button -->
+          <label class="image-upload-btn" for="image-upload-input">
+            <input type="file" id="image-upload-input" accept="image/*" capture="environment" style="display:none;" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            <span class="image-upload-btn__text">Tomar o seleccionar foto</span>
+            <span class="image-upload-btn__subtext">Máximo 5MB · JPG, PNG, WebP</span>
+          </label>
+
+          <!-- Gallery -->
+          <div class="image-gallery" id="wd-images-gallery">
+            <!-- populated by JS -->
+          </div>
+        </div>
+      </div>
+
       <!-- Add treatment button -->
       <button class="btn btn--primary btn--full" id="btn-new-treatment" style="margin-bottom:var(--sp-5);">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -463,6 +488,7 @@
 <script src="js/patients.js"></script>
 <script src="js/wounds.js"></script>
 <script src="js/treatments.js"></script>
+<script src="js/images.js"></script>
 <script>
 (function () {
   'use strict';
@@ -675,6 +701,121 @@
         `).join('') +
       '</div>';
     }
+
+    // Load images
+    await _loadWoundImages(woundId);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // IMAGE MANAGEMENT
+  // ═══════════════════════════════════════════════════
+
+  let _currentWoundImages = [];
+
+  // ── Load images for current wound ────────────────────
+  async function _loadWoundImages(woundId) {
+    _currentWoundImages = await window.CURA360.images.list(woundId);
+    
+    // Update counter
+    const count = _currentWoundImages.length;
+    document.getElementById('wd-images-count').textContent = 
+      count === 0 ? 'Sin fotos' : `${count} ${count === 1 ? 'foto' : 'fotos'}`;
+
+    // Render gallery
+    const gallery = document.getElementById('wd-images-gallery');
+    if (count === 0) {
+      gallery.innerHTML = '<p style="color:var(--text-muted);font-size:var(--text-sm);text-align:center;padding:var(--sp-6);">Aún no hay fotografías de esta herida.</p>';
+      return;
+    }
+
+    // Load URLs and render
+    const items = await Promise.all(
+      _currentWoundImages.map(async (img) => {
+        const url = await window.CURA360.images.getSignedUrl(img.storage_path);
+        return { ...img, url };
+      })
+    );
+
+    gallery.innerHTML = items.map(img => `
+      <div class="image-gallery-item" data-image-id="${img.id}">
+        <img class="image-gallery-item__img" src="${img.url}" alt="Foto de herida" loading="lazy" />
+        <div class="image-gallery-item__date">${window.CURA360.formatDate(img.created_at)}</div>
+        <button class="image-gallery-item__delete" data-image-id="${img.id}" data-storage-path="${img.storage_path}" aria-label="Eliminar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+        </button>
+      </div>
+    `).join('');
+  }
+
+  // ── Handle image upload ──────────────────────────────
+  document.getElementById('image-upload-input').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Show loading
+    document.getElementById('image-upload-loading').classList.add('active');
+
+    // Upload
+    const result = await window.CURA360.images.upload(_selectedWoundId, file);
+
+    // Hide loading
+    document.getElementById('image-upload-loading').classList.remove('active');
+
+    if (result) {
+      // Reload gallery
+      await _loadWoundImages(_selectedWoundId);
+    }
+
+    // Reset input
+    e.target.value = '';
+  });
+
+  // ── Handle image click (view fullscreen) ─────────────
+  document.getElementById('wd-images-gallery').addEventListener('click', async (e) => {
+    const item = e.target.closest('.image-gallery-item');
+    if (!item) return;
+
+    // Check if delete button was clicked
+    const deleteBtn = e.target.closest('.image-gallery-item__delete');
+    if (deleteBtn) {
+      const imageId = deleteBtn.getAttribute('data-image-id');
+      const storagePath = deleteBtn.getAttribute('data-storage-path');
+      _confirmDeleteImage(imageId, storagePath);
+      return;
+    }
+
+    // Open viewer
+    const img = item.querySelector('.image-gallery-item__img');
+    const date = item.querySelector('.image-gallery-item__date').textContent;
+    
+    document.getElementById('image-viewer-img').src = img.src;
+    document.getElementById('image-viewer-info').textContent = date;
+    document.getElementById('image-viewer').classList.add('open');
+  });
+
+  // ── Close image viewer ───────────────────────────────
+  document.getElementById('image-viewer-close').addEventListener('click', () => {
+    document.getElementById('image-viewer').classList.remove('open');
+  });
+  document.getElementById('image-viewer').addEventListener('click', (e) => {
+    if (e.target.id === 'image-viewer') {
+      document.getElementById('image-viewer').classList.remove('open');
+    }
+  });
+
+  // ── Delete image confirmation ────────────────────────
+  function _confirmDeleteImage(imageId, storagePath) {
+    if (!confirm('¿Eliminar esta imagen? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    window.CURA360.images.delete(imageId, storagePath).then(success => {
+      if (success) {
+        _loadWoundImages(_selectedWoundId);
+      }
+    });
   }
 
   // ── Modal bindings ─────────────────────────────────
@@ -839,5 +980,25 @@
 
 })();
 </script>
+
+<!-- Image Viewer Modal -->
+<div class="image-viewer" id="image-viewer">
+  <button class="image-viewer__close" id="image-viewer-close" aria-label="Cerrar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
+  <img class="image-viewer__img" id="image-viewer-img" alt="Imagen de herida" />
+  <div class="image-viewer__info" id="image-viewer-info">
+    <!-- Date and notes -->
+  </div>
+</div>
+
+<!-- Upload Loading Overlay -->
+<div class="image-upload-loading" id="image-upload-loading">
+  <div class="image-upload-loading__spinner"></div>
+  <div class="image-upload-loading__text">Procesando imagen...</div>
+</div>
+
 </body>
 </html>
