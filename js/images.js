@@ -1,14 +1,14 @@
 /**
- * wound-images.js — Image management for wounds
- * ────────────────────────────────────────────────
+ * images.js — Wound Images Management
+ * ────────────────────────────────────
  * Handles image upload, compression, storage, and gallery display.
  * Uses Supabase Storage for files and wound_images table for metadata.
  *
- * Public API (window.CURA360.woundImages):
- *   upload(woundId, file, notes)  → Promise<object>
- *   list(woundId)                 → Promise<object[]>
- *   delete(imageId)               → Promise<boolean>
- *   getPublicUrl(storagePath)     → string
+ * Public API (window.CURA360.images):
+ *   upload(woundId, file, notes)     → Promise<object>
+ *   list(woundId)                    → Promise<object[]>
+ *   delete(imageId, storagePath)     → Promise<boolean>
+ *   getSignedUrl(storagePath)        → Promise<string>
  */
 
 (function () {
@@ -18,7 +18,7 @@
   const SUPABASE_URL = 'https://ghzfnosevncivblpbful.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_zLely_K2mNNHQv82YeV40A_-Tj1XLDg';
   const STORAGE_KEY = 'sb-ghzfnosevncivblpbful-auth-token';
-  const BUCKET_NAME = 'wound-images';
+  const BUCKET_NAME = 'wounds';  // ← IMPORTANTE: debe coincidir con el bucket creado
 
   // ── Helper: get auth token ───────────────────────────
   function getToken() {
@@ -28,7 +28,7 @@
       const session = JSON.parse(sessionData);
       return session.access_token;
     } catch (err) {
-      console.error('[woundImages] Error parsing session:', err);
+      console.error('[images] Error parsing session:', err);
       return null;
     }
   }
@@ -38,10 +38,10 @@
    * Compresses image if larger than maxSizeMB
    * @param {File} file - original image file
    * @param {number} maxSizeMB - max size in MB (default 2)
-   * @param {number} quality - compression quality 0-1 (default 0.8)
+   * @param {number} quality - compression quality 0-1 (default 0.85)
    * @returns {Promise<Blob>}
    */
-  async function compressImage(file, maxSizeMB = 2, quality = 0.8) {
+  async function compressImage(file, maxSizeMB = 2, quality = 0.85) {
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
     
     // Si ya es pequeño, no comprimir
@@ -81,7 +81,7 @@
           canvas.toBlob(
             (blob) => {
               if (blob) {
-                console.log('[woundImages] Compressed:', 
+                console.log('[images] Compressed:', 
                   `${(file.size / 1024 / 1024).toFixed(2)}MB → ${(blob.size / 1024 / 1024).toFixed(2)}MB`);
                 resolve(blob);
               } else {
@@ -124,7 +124,7 @@
     }
 
     try {
-      console.log('[woundImages] Starting upload...');
+      console.log('[images] Starting upload...');
       
       // Comprimir imagen
       const compressedBlob = await compressImage(file);
@@ -135,7 +135,7 @@
       const fileName = `${timestamp}.${extension}`;
       const storagePath = `${woundId}/${fileName}`;
 
-      console.log('[woundImages] Uploading to:', storagePath);
+      console.log('[images] Uploading to:', storagePath);
 
       // Subir a Storage usando fetch directo
       const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${storagePath}`;
@@ -152,12 +152,12 @@
 
       if (!uploadResponse.ok) {
         const error = await uploadResponse.text();
-        console.error('[woundImages] Upload failed:', error);
+        console.error('[images] Upload failed:', error);
         window.CURA360.showToast('Error al subir imagen.');
         return null;
       }
 
-      console.log('[woundImages] Upload successful, saving metadata...');
+      console.log('[images] Upload successful, saving metadata...');
 
       // Guardar metadata en tabla
       const metadata = {
@@ -184,19 +184,19 @@
       );
 
       if (!metadataResponse.ok) {
-        console.error('[woundImages] Metadata save failed');
+        console.error('[images] Metadata save failed');
         window.CURA360.showToast('Error al guardar metadata de imagen.');
         return null;
       }
 
       const savedMetadata = await metadataResponse.json();
-      console.log('[woundImages] Metadata saved:', savedMetadata[0].id);
+      console.log('[images] Metadata saved:', savedMetadata[0].id);
       
       window.CURA360.showToast('Imagen agregada exitosamente.', 'success');
       return savedMetadata[0];
       
     } catch (err) {
-      console.error('[woundImages] upload error:', err);
+      console.error('[images] upload error:', err);
       window.CURA360.showToast('Error al subir imagen.');
       return null;
     }
@@ -224,13 +224,13 @@
       );
 
       if (!response.ok) {
-        console.error('[woundImages] list HTTP error:', response.status);
+        console.error('[images] list HTTP error:', response.status);
         return [];
       }
 
       return await response.json();
     } catch (err) {
-      console.error('[woundImages] list error:', err);
+      console.error('[images] list error:', err);
       return [];
     }
   }
@@ -276,7 +276,7 @@
       
       return false;
     } catch (err) {
-      console.error('[woundImages] delete error:', err);
+      console.error('[images] delete error:', err);
       window.CURA360.showToast('Error al eliminar imagen.');
       return false;
     }
@@ -307,26 +307,26 @@
       );
 
       if (!response.ok) {
-        console.error('[woundImages] getSignedUrl failed:', response.status);
+        console.error('[images] getSignedUrl failed:', response.status);
         return null;
       }
 
       const data = await response.json();
       return `${SUPABASE_URL}/storage/v1${data.signedURL}`;
     } catch (err) {
-      console.error('[woundImages] getSignedUrl error:', err);
+      console.error('[images] getSignedUrl error:', err);
       return null;
     }
   }
 
   // ── Expose ───────────────────────────────────────────
-  window.CURA360.woundImages = {
+  window.CURA360.images = {
     upload,
     list,
     delete: deleteImage,
     getSignedUrl
   };
 
-  console.log('[woundImages] Module loaded');
+  console.log('[images] Module loaded');
 
 })();
