@@ -171,4 +171,3 @@
   window.CURA360.patients = { create, list, getById };
 
 })();
-
