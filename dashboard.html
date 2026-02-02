@@ -346,8 +346,31 @@
 
 <!-- ═══════════ MODALS ═══════════════════════════════════ -->
 
-```html
-<!-- Modal: Create Patient - MEJORADO CON CAMPOS CL脥NICOS -->
+<!-- Modal: Create Patient -->
+<div class="modal-overlay" id="modal-patient">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-patient-title">
+    <div class="modal__handle"></div>
+    <div class="modal__header">
+      <h2 class="modal__title" id="modal-patient-title">Nuevo paciente</h2>
+      <button class="modal__close" id="btn-close-patient" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      <form id="form-patient" novalidate>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="p-name">Nombre completo <span class="required">*</span></label>
+            <input class="form-input" type="text" id="p-name" placeholder="Juan Pérez" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-age">Edad <span class="required">*</span></label>
+            <input class="form-input" type="number" id="p-age" placeholder="45" min="0" max="120" required />
+          </div>
+
+<!-- ═══════════ MODALS ═══════════════════════════════════ -->
+
+<!-- Modal: Create Patient - MEJORADO CON CAMPOS CLÍNICOS -->
 <div class="modal-overlay" id="modal-patient">
   <div class="modal" role="dialog" aria-modal="true">
     <div class="modal__handle"></div>
@@ -362,15 +385,15 @@
     <div class="modal__body">
       <form id="form-patient" novalidate>
         
-        <!-- SECCI脫N 1: Datos Personales -->
+        <!-- SECCIÓN 1: Datos Personales -->
         <h3 style="font-size:var(--text-md);margin-bottom:var(--sp-3);color:var(--clr-teal-400);">
-          馃搵 Datos Personales
+          📋 Datos Personales
         </h3>
         
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label" for="p-name">Nombre completo <span class="required">*</span></label>
-            <input class="form-input" type="text" id="p-name" placeholder="Mar铆a Gonz谩lez P茅rez" required />
+            <input class="form-input" type="text" id="p-name" placeholder="María González Pérez" required />
           </div>
           <div class="form-group">
             <label class="form-label" for="p-rut">RUT</label>
@@ -384,13 +407,13 @@
             <input class="form-input" type="number" id="p-age" placeholder="68" min="0" max="120" required />
           </div>
           <div class="form-group">
-            <label class="form-label" for="p-phone">Tel茅fono</label>
+            <label class="form-label" for="p-phone">Teléfono</label>
             <input class="form-input" type="tel" id="p-phone" placeholder="+56 9 1234 5678" />
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="p-address">Direcci贸n</label>
+          <label class="form-label" for="p-address">Dirección</label>
           <input class="form-input" type="text" id="p-address" placeholder="Av. Libertador 456, Depto 23" />
         </div>
 
@@ -399,26 +422,26 @@
           <input class="form-input" type="text" id="p-commune" placeholder="Lo Prado" />
         </div>
 
-        <!-- SECCI脫N 2: Antecedentes Cl铆nicos -->
+        <!-- SECCIÓN 2: Antecedentes Clínicos -->
         <h3 style="font-size:var(--text-md);margin:var(--sp-5) 0 var(--sp-3);color:var(--clr-teal-400);">
-          馃彞 Antecedentes Cl铆nicos
+          🏥 Antecedentes Clínicos
         </h3>
 
         <div class="form-group">
-          <label class="form-label" for="p-diagnosis">Diagn贸stico principal</label>
+          <label class="form-label" for="p-diagnosis">Diagnóstico principal</label>
           <input class="form-input" type="text" id="p-diagnosis" placeholder="Diabetes Mellitus tipo 2" />
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="p-medical-history">Antecedentes m贸rbidos</label>
+          <label class="form-label" for="p-medical-history">Antecedentes mórbidos</label>
           <textarea class="form-input" id="p-medical-history" rows="2" 
-            placeholder="HTA, DM2, insuficiencia renal cr贸nica..."></textarea>
+            placeholder="HTA, DM2, insuficiencia renal crónica..."></textarea>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="p-medications">Medicamentos actuales</label>
           <textarea class="form-input" id="p-medications" rows="2" 
-            placeholder="Metformina 850mg c/12h, Enalapril 10mg/d铆a..."></textarea>
+            placeholder="Metformina 850mg c/12h, Enalapril 10mg/día..."></textarea>
         </div>
 
         <div class="form-group">
@@ -426,14 +449,14 @@
           <input class="form-input" type="text" id="p-allergies" placeholder="Penicilina, mariscos..." />
         </div>
 
-        <!-- SECCI脫N 3: Evaluaci贸n Funcional -->
+        <!-- SECCIÓN 3: Evaluación Funcional -->
         <h3 style="font-size:var(--text-md);margin:var(--sp-5) 0 var(--sp-3);color:var(--clr-teal-400);">
-          馃毝 Evaluaci贸n Funcional
+          🚶 Evaluación Funcional
         </h3>
 
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label" for="p-barthel">脥ndice de Barthel</label>
+            <label class="form-label" for="p-barthel">Índice de Barthel</label>
             <input class="form-input" type="number" id="p-barthel" placeholder="0-100" min="0" max="100" />
             <small style="color:var(--text-muted);font-size:var(--text-xs);display:block;margin-top:var(--sp-1);">
               0-20: Dependencia total | 21-60: Dependencia grave | 61-90: Moderada | 91-99: Leve | 100: Independiente
@@ -451,18 +474,18 @@
           </div>
         </div>
 
-        <!-- SECCI脫N 4: Cuidador -->
+        <!-- SECCIÓN 4: Cuidador -->
         <h3 style="font-size:var(--text-md);margin:var(--sp-5) 0 var(--sp-3);color:var(--clr-teal-400);">
-          馃懃 Cuidador
+          👥 Cuidador
         </h3>
 
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label" for="p-caregiver-name">Nombre del cuidador</label>
-            <input class="form-input" type="text" id="p-caregiver-name" placeholder="Pedro Gonz谩lez" />
+            <input class="form-input" type="text" id="p-caregiver-name" placeholder="Pedro González" />
           </div>
           <div class="form-group">
-            <label class="form-label" for="p-caregiver-phone">Tel茅fono del cuidador</label>
+            <label class="form-label" for="p-caregiver-phone">Teléfono del cuidador</label>
             <input class="form-input" type="tel" id="p-caregiver-phone" placeholder="+56 9 8765 4321" />
           </div>
         </div>
@@ -470,7 +493,7 @@
         <div class="form-group">
           <label class="form-label" for="p-comorbidities">Observaciones adicionales</label>
           <textarea class="form-input" id="p-comorbidities" rows="2" 
-            placeholder="Cualquier informaci贸n relevante..."></textarea>
+            placeholder="Cualquier información relevante..."></textarea>
         </div>
 
         <button type="submit" class="btn btn--primary btn--full" style="margin-top:var(--sp-4);">
@@ -480,10 +503,8 @@
     </div>
   </div>
 </div>
-```
 
-```html
-<!-- Modal: Create Wound - MEJORADO CON CLASIFICACI脫N CL脥NICA -->
+<!-- Modal: Create Wound - MEJORADO CON CLASIFICACIÓN CLÍNICA -->
 <div class="modal-overlay" id="modal-wound">
   <div class="modal" role="dialog" aria-modal="true">
     <div class="modal__handle"></div>
@@ -499,9 +520,9 @@
       <form id="form-wound" novalidate>
         <input type="hidden" id="w-patient-id" />
         
-        <!-- SECCI脫N 1: Clasificaci贸n -->
+        <!-- SECCIÓN 1: Clasificación -->
         <h3 style="font-size:var(--text-md);margin-bottom:var(--sp-3);color:var(--clr-teal-400);">
-          馃彿锔?Clasificaci贸n
+          🏷️ Clasificación
         </h3>
 
         <div class="form-grid">
@@ -509,13 +530,13 @@
             <label class="form-label" for="w-type-standard">Tipo de herida <span class="required">*</span></label>
             <select class="form-input" id="w-type-standard" required>
               <option value="">Seleccionar...</option>
-              <option value="ulcera_presion">脷lcera por presi贸n</option>
-              <option value="ulcera_venosa">脷lcera venosa</option>
-              <option value="ulcera_arterial">脷lcera arterial</option>
-              <option value="pie_diabetico">Pie diab茅tico</option>
-              <option value="ulcera_mixta">脷lcera mixta</option>
-              <option value="traumatica">Traum谩tica</option>
-              <option value="quirurgica">Quir煤rgica</option>
+              <option value="ulcera_presion">Úlcera por presión</option>
+              <option value="ulcera_venosa">Úlcera venosa</option>
+              <option value="ulcera_arterial">Úlcera arterial</option>
+              <option value="pie_diabetico">Pie diabético</option>
+              <option value="ulcera_mixta">Úlcera mixta</option>
+              <option value="traumatica">Traumática</option>
+              <option value="quirurgica">Quirúrgica</option>
               <option value="quemadura">Quemadura</option>
               <option value="otra">Otra</option>
             </select>
@@ -525,23 +546,23 @@
             <select class="form-input" id="w-grade" required>
               <option value="">Seleccionar...</option>
               <option value="1">Grado 1 - Eritema no blanqueable</option>
-              <option value="2">Grado 2 - P茅rdida parcial espesor</option>
-              <option value="3">Grado 3 - P茅rdida total espesor</option>
-              <option value="4">Grado 4 - P茅rdida total + exposici贸n 贸sea</option>
+              <option value="2">Grado 2 - Pérdida parcial espesor</option>
+              <option value="3">Grado 3 - Pérdida total espesor</option>
+              <option value="4">Grado 4 - Pérdida total + exposición ósea</option>
               <option value="no_estadiable">No estadiable</option>
             </select>
           </div>
         </div>
 
-        <!-- SECCI脫N 2: Ubicaci贸n y Dimensiones -->
+        <!-- SECCIÓN 2: Ubicación y Dimensiones -->
         <h3 style="font-size:var(--text-md);margin:var(--sp-5) 0 var(--sp-3);color:var(--clr-teal-400);">
-          馃搷 Ubicaci贸n y Medidas
+          📍 Ubicación y Medidas
         </h3>
 
         <div class="form-group">
-          <label class="form-label" for="w-location">Ubicaci贸n anat贸mica <span class="required">*</span></label>
+          <label class="form-label" for="w-location">Ubicación anatómica <span class="required">*</span></label>
           <input class="form-input" type="text" id="w-location" 
-            placeholder="Ej: Sacro, tal贸n derecho, regi贸n gl煤tea..." required />
+            placeholder="Ej: Sacro, talón derecho, región glútea..." required />
         </div>
 
         <div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
@@ -559,9 +580,9 @@
           </div>
         </div>
 
-        <!-- SECCI脫N 3: Caracter铆sticas Cl铆nicas -->
+        <!-- SECCIÓN 3: Características Clínicas -->
         <h3 style="font-size:var(--text-md);margin:var(--sp-5) 0 var(--sp-3);color:var(--clr-teal-400);">
-          馃敩 Caracter铆sticas Cl铆nicas
+          🔬 Características Clínicas
         </h3>
 
         <div class="form-grid">
@@ -591,93 +612,41 @@
             <label class="form-label" for="w-pain">Dolor (EVA 0-10)</label>
             <input class="form-input" type="number" id="w-pain" min="0" max="10" placeholder="0" />
             <small style="color:var(--text-muted);font-size:var(--text-xs);display:block;margin-top:var(--sp-1);">
-              0: Sin dolor | 10: Dolor m谩ximo
+              0: Sin dolor | 10: Dolor máximo
             </small>
           </div>
           <div class="form-group">
-            <label class="form-label" for="w-infection">Signos de infecci贸n</label>
+            <label class="form-label" for="w-infection">Signos de infección</label>
             <select class="form-input" id="w-infection">
               <option value="no">No</option>
-              <option value="si">S铆 - Requiere evaluaci贸n</option>
+              <option value="si">Sí - Requiere evaluación</option>
             </select>
           </div>
         </div>
 
-        <!-- SECCI脫N 4: Estado y Observaciones -->
+        <!-- SECCIÓN 4: Estado y Observaciones -->
         <h3 style="font-size:var(--text-md);margin:var(--sp-5) 0 var(--sp-3);color:var(--clr-teal-400);">
-          馃摑 Estado y Observaciones
+          📝 Estado y Observaciones
         </h3>
 
         <div class="form-group">
           <label class="form-label" for="w-status">Estado actual</label>
           <select class="form-input" id="w-status">
             <option value="active">Activa</option>
-            <option value="critical">Cr铆tica - Requiere atenci贸n urgente</option>
-            <option value="pending">En evaluaci贸n</option>
+            <option value="critical">Crítica - Requiere atención urgente</option>
+            <option value="pending">En evaluación</option>
           </select>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="w-dimensions">Observaciones adicionales</label>
           <textarea class="form-input" id="w-dimensions" rows="3" 
-            placeholder="Descripci贸n del lecho, bordes, piel perilesional, etc."></textarea>
+            placeholder="Descripción del lecho, bordes, piel perilesional, etc."></textarea>
         </div>
 
         <button type="submit" class="btn btn--primary btn--full" style="margin-top:var(--sp-4);">
           Registrar herida
         </button>
-      </form>
-    </div>
-  </div>
-</div>
-```
-
-    
-    <div class="modal__body">
-      <form id="form-wound" novalidate>
-        <input type="hidden" id="w-patient-id" />
-        <div class="form-group">
-          <label class="form-label" for="w-type">Tipo de herida <span class="required">*</span></label>
-          <select class="form-input" id="w-type" required>
-            <option value="" disabled selected>Seleccione...</option>
-            <option value="Úlcera por presión">Úlcera por presión</option>
-            <option value="Herida quirúrgica">Herida quirúrgica</option>
-            <option value="Herida traumática">Herida traumática</option>
-            <option value="Úlcera venosa">Úlcera venosa</option>
-            <option value="Quemadura">Quemadura</option>
-            <option value="Herida diabética">Herida diabética</option>
-            <option value="Otra">Otra</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="w-location">Ubicación anatómica <span class="required">*</span></label>
-          <select class="form-input" id="w-location" required>
-            <option value="" disabled selected>Seleccione...</option>
-            <option value="Espalda">Espalda</option>
-            <option value="Talón">Talón</option>
-            <option value="Rodilla">Rodilla</option>
-            <option value="Cadera">Cadera</option>
-            <option value="Abdomen">Abdomen</option>
-            <option value="Pierna inferior">Pierna inferior</option>
-            <option value="Pie">Pie</option>
-            <option value="Cabeza">Cabeza</option>
-            <option value="Otra">Otra</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="w-dimensions">Dimensiones (cm)</label>
-          <input class="form-input" type="text" id="w-dimensions" placeholder="Ej: 3 x 5 cm" />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="w-status">Estado clínico <span class="required">*</span></label>
-          <select class="form-input" id="w-status" required>
-            <option value="active">Activa</option>
-            <option value="pending">En evaluación</option>
-            <option value="critical">Crítica</option>
-            <option value="closed">Cerrada</option>
-          </select>
-        </div>
-        <button class="btn btn--primary btn--full" type="submit">Registrar herida</button>
       </form>
     </div>
   </div>
@@ -722,7 +691,6 @@
   </div>
 </div>
 
-<!-- ── Scripts ───────────────────────────────────────────── -->
 <script src="js/supabase.js"></script>
 <script src="js/router.js"></script>
 <script src="js/auth.js"></script>
@@ -1112,99 +1080,48 @@
 
     // ── Form submissions ─────────────────────────────
     // Patient form
-  
-// Patient form - MEJORADO CON CAMPOS CL脥NICOS
-document.getElementById('form-patient').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const data = {
-    // Datos personales
-    name: document.getElementById('p-name').value.trim(),
-    rut: document.getElementById('p-rut').value.trim(),
-    age: document.getElementById('p-age').value,
-    phone: document.getElementById('p-phone').value.trim(),
-    address: document.getElementById('p-address').value.trim(),
-    commune: document.getElementById('p-commune').value.trim(),
-    
-    // Antecedentes cl铆nicos
-    diagnosis: document.getElementById('p-diagnosis').value.trim(),
-    medical_history: document.getElementById('p-medical-history').value.trim(),
-    medications: document.getElementById('p-medications').value.trim(),
-    allergies: document.getElementById('p-allergies').value.trim(),
-    
-    // Evaluaci贸n funcional
-    barthel_index: document.getElementById('p-barthel').value || null,
-    mobility: document.getElementById('p-mobility').value || null,
-    
-    // Cuidador
-    caregiver_name: document.getElementById('p-caregiver-name').value.trim(),
-    caregiver_phone: document.getElementById('p-caregiver-phone').value.trim(),
-    
-    // Observaciones
-    comorbidities: document.getElementById('p-comorbidities').value.trim()
-  };
-  
-  // Validaci贸n b谩sica
-  if (!data.name || !data.age) {
-    window.CURA360.showToast('Nombre y edad son obligatorios.');
-    return;
-  }
-  
-  const result = await window.CURA360.patients.create(data);
-  if (result) {
-    window.CURA360.closeModal('modal-patient');
-    document.getElementById('form-patient').reset();
-    await _loadDashboard();
-  }
-});
-
+    document.getElementById('form-patient').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        name:          document.getElementById('p-name').value.trim(),
+        age:           document.getElementById('p-age').value,
+        diagnosis:     document.getElementById('p-diagnosis').value.trim(),
+        comorbidities: document.getElementById('p-comorbidities').value.trim()
+      };
+      if (!data.name || !data.age) {
+        window.CURA360.showToast('Nombre y edad son obligatorios.');
+        return;
+      }
+      const result = await window.CURA360.patients.create(data);
+      if (result) {
+        window.CURA360.closeModal('modal-patient');
+        document.getElementById('form-patient').reset();
+        await _loadDashboard();
+      }
+    });
 
     // Wound form
-
-// Wound form - MEJORADO CON CLASIFICACI脫N CL脥NICA
-document.getElementById('form-wound').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const typeSelect = document.getElementById('w-type-standard');
-  
-  const data = {
-    patient_id: document.getElementById('w-patient-id').value,
-    
-    // Clasificaci贸n
-    wound_type_standard: typeSelect.value,
-    type: typeSelect.options[typeSelect.selectedIndex].text,
-    wound_grade: document.getElementById('w-grade').value,
-    
-    // Ubicaci贸n y medidas
-    location: document.getElementById('w-location').value.trim(),
-    length_cm: document.getElementById('w-length').value || null,
-    width_cm: document.getElementById('w-width').value || null,
-    depth_cm: document.getElementById('w-depth').value || null,
-    
-    // Caracter铆sticas cl铆nicas
-    exudate_amount: document.getElementById('w-exudate-amount').value || null,
-    exudate_type: document.getElementById('w-exudate-type').value || null,
-    pain_scale: document.getElementById('w-pain').value || null,
-    infection_signs: document.getElementById('w-infection').value === 'si',
-    
-    // Estado
-    status: document.getElementById('w-status').value,
-    dimensions: document.getElementById('w-dimensions').value.trim()  // Observaciones
-  };
-  
-  if (!data.wound_type_standard || !data.wound_grade || !data.location) {
-    window.CURA360.showToast('Complete los campos obligatorios.');
-    return;
-  }
-  
-  const result = await window.CURA360.wounds.create(data.patient_id, data);
-  if (result) {
-    window.CURA360.closeModal('modal-wound');
-    document.getElementById('form-wound').reset();
-    await _loadPatientDetail(_selectedPatientId);
-  }
-});
-
+    document.getElementById('form-wound').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const patientId = document.getElementById('w-patient-id').value;
+      const data = {
+        type:       document.getElementById('w-type').value,
+        location:   document.getElementById('w-location').value,
+        dimensions: document.getElementById('w-dimensions').value.trim(),
+        status:     document.getElementById('w-status').value
+      };
+      if (!data.type || !data.location) {
+        window.CURA360.showToast('Tipo y ubicación son obligatorios.');
+        return;
+      }
+      const result = await window.CURA360.wounds.create(patientId, data);
+      if (result) {
+        window.CURA360.closeModal('modal-wound');
+        document.getElementById('form-wound').reset();
+        // Reload current view
+        if (_selectedPatientId) await _loadPatientDetail(_selectedPatientId);
+      }
+    });
 
     // Treatment form
     document.getElementById('form-treatment').addEventListener('submit', async (e) => {
