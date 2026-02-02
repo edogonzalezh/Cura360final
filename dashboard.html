@@ -1097,27 +1097,61 @@
     });
 
     // Wound form
-    document.getElementById('form-wound').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const patientId = document.getElementById('w-patient-id').value;
-      const data = {
-        type:       document.getElementById('w-type').value,
-        location:   document.getElementById('w-location').value,
-        dimensions: document.getElementById('w-dimensions').value.trim(),
-        status:     document.getElementById('w-status').value
-      };
-      if (!data.type || !data.location) {
-        window.CURA360.showToast('Tipo y ubicación son obligatorios.');
-        return;
-      }
-      const result = await window.CURA360.wounds.create(patientId, data);
-      if (result) {
-        window.CURA360.closeModal('modal-wound');
-        document.getElementById('form-wound').reset();
-        // Reload current view
-        if (_selectedPatientId) await _loadPatientDetail(_selectedPatientId);
-      }
-    });
+// Wound form
+document.getElementById('form-wound').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const patientId = document.getElementById('w-patient-id').value;
+  
+  // Extraer tipo estándar y generar texto legible
+  const typeStandard = document.getElementById('w-type-standard').value;
+  const typeText = {
+    'ulcera_presion': 'Úlcera por presión',
+    'ulcera_venosa': 'Úlcera venosa',
+    'ulcera_arterial': 'Úlcera arterial',
+    'pie_diabetico': 'Pie diabético',
+    'ulcera_mixta': 'Úlcera mixta',
+    'traumatica': 'Traumática',
+    'quirurgica': 'Quirúrgica',
+    'quemadura': 'Quemadura',
+    'otra': 'Otra'
+  }[typeStandard] || typeStandard;
+  
+  const data = {
+    // Clasificación
+    wound_type_standard: typeStandard,
+    wound_grade: document.getElementById('w-grade').value,
+    type: typeText, // Para compatibilidad con vistas existentes
+    
+    // Ubicación y medidas
+    location: document.getElementById('w-location').value,
+    length_cm: parseFloat(document.getElementById('w-length').value) || null,
+    width_cm: parseFloat(document.getElementById('w-width').value) || null,
+    depth_cm: parseFloat(document.getElementById('w-depth').value) || null,
+    
+    // Características clínicas
+    exudate_amount: document.getElementById('w-exudate-amount').value || null,
+    exudate_type: document.getElementById('w-exudate-type').value || null,
+    pain_scale: parseInt(document.getElementById('w-pain').value) || null,
+    infection_signs: document.getElementById('w-infection').value,
+    
+    // Estado y observaciones
+    status: document.getElementById('w-status').value,
+    dimensions: document.getElementById('w-dimensions').value.trim()
+  };
+  
+  if (!data.wound_type_standard || !data.wound_grade || !data.location) {
+    window.CURA360.showToast('Tipo, grado y ubicación son obligatorios.');
+    return;
+  }
+  
+  const result = await window.CURA360.wounds.create(patientId, data);
+  if (result) {
+    window.CURA360.closeModal('modal-wound');
+    document.getElementById('form-wound').reset();
+    // Reload current view
+    if (_selectedPatientId) await _loadPatientDetail(_selectedPatientId);
+  }
+});
 
     // Treatment form
     document.getElementById('form-treatment').addEventListener('submit', async (e) => {
