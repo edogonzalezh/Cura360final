@@ -14,8 +14,8 @@
   'use strict';
 
   const sb = window.CURA360.supabase;
-  const SUPABASE_URL = sb.supabaseUrl;
-  const SUPABASE_KEY = sb.supabaseKey;
+  const SUPABASE_URL = 'https://ghzfnosevncivblpbful.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_zLely_K2mNNHQv82YeV40A_-Tj1XLDg';
   const STORAGE_KEY = 'sb-' + SUPABASE_URL.match(/\/\/(.+?)\.supabase/)[1] + '-auth-token';
 
   // ── Helper: get auth token ───────────────────────────
