@@ -346,52 +346,293 @@
 
 <!-- ═══════════ MODALS ═══════════════════════════════════ -->
 
-<!-- Modal: Create Patient -->
+```html
+<!-- Modal: Create Patient - MEJORADO CON CAMPOS CL脥NICOS -->
 <div class="modal-overlay" id="modal-patient">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-patient-title">
+  <div class="modal" role="dialog" aria-modal="true">
     <div class="modal__handle"></div>
     <div class="modal__header">
-      <h2 class="modal__title" id="modal-patient-title">Nuevo paciente</h2>
+      <h2 class="modal__title">Nuevo paciente</h2>
       <button class="modal__close" id="btn-close-patient" aria-label="Cerrar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
       </button>
     </div>
     <div class="modal__body">
       <form id="form-patient" novalidate>
+        
+        <!-- SECCI脫N 1: Datos Personales -->
+        <h3 style="font-size:var(--text-md);margin-bottom:var(--sp-3);color:var(--clr-teal-400);">
+          馃搵 Datos Personales
+        </h3>
+        
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label" for="p-name">Nombre completo <span class="required">*</span></label>
-            <input class="form-input" type="text" id="p-name" placeholder="Juan Pérez" required />
+            <input class="form-input" type="text" id="p-name" placeholder="Mar铆a Gonz谩lez P茅rez" required />
           </div>
           <div class="form-group">
-            <label class="form-label" for="p-age">Edad <span class="required">*</span></label>
-            <input class="form-input" type="number" id="p-age" placeholder="45" min="0" max="120" required />
+            <label class="form-label" for="p-rut">RUT</label>
+            <input class="form-input" type="text" id="p-rut" placeholder="15.234.567-8" />
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="p-diagnosis">Diagnóstico</label>
-          <input class="form-input" type="text" id="p-diagnosis" placeholder="Ej: Úlcera por presión" />
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="p-age">Edad <span class="required">*</span></label>
+            <input class="form-input" type="number" id="p-age" placeholder="68" min="0" max="120" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-phone">Tel茅fono</label>
+            <input class="form-input" type="tel" id="p-phone" placeholder="+56 9 1234 5678" />
+          </div>
         </div>
+
         <div class="form-group">
-          <label class="form-label" for="p-comorbidities">Comorbilidades</label>
-          <textarea class="form-input" id="p-comorbidities" placeholder="Ej: Diabetes tipo 2, Hipertensión" rows="3"></textarea>
+          <label class="form-label" for="p-address">Direcci贸n</label>
+          <input class="form-input" type="text" id="p-address" placeholder="Av. Libertador 456, Depto 23" />
         </div>
-        <button class="btn btn--primary btn--full" type="submit">Crear paciente</button>
+
+        <div class="form-group">
+          <label class="form-label" for="p-commune">Comuna</label>
+          <input class="form-input" type="text" id="p-commune" placeholder="Lo Prado" />
+        </div>
+
+        <!-- SECCI脫N 2: Antecedentes Cl铆nicos -->
+        <h3 style="font-size:var(--text-md);margin:var(--sp-5) 0 var(--sp-3);color:var(--clr-teal-400);">
+          馃彞 Antecedentes Cl铆nicos
+        </h3>
+
+        <div class="form-group">
+          <label class="form-label" for="p-diagnosis">Diagn贸stico principal</label>
+          <input class="form-input" type="text" id="p-diagnosis" placeholder="Diabetes Mellitus tipo 2" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="p-medical-history">Antecedentes m贸rbidos</label>
+          <textarea class="form-input" id="p-medical-history" rows="2" 
+            placeholder="HTA, DM2, insuficiencia renal cr贸nica..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="p-medications">Medicamentos actuales</label>
+          <textarea class="form-input" id="p-medications" rows="2" 
+            placeholder="Metformina 850mg c/12h, Enalapril 10mg/d铆a..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="p-allergies">Alergias</label>
+          <input class="form-input" type="text" id="p-allergies" placeholder="Penicilina, mariscos..." />
+        </div>
+
+        <!-- SECCI脫N 3: Evaluaci贸n Funcional -->
+        <h3 style="font-size:var(--text-md);margin:var(--sp-5) 0 var(--sp-3);color:var(--clr-teal-400);">
+          馃毝 Evaluaci贸n Funcional
+        </h3>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="p-barthel">脥ndice de Barthel</label>
+            <input class="form-input" type="number" id="p-barthel" placeholder="0-100" min="0" max="100" />
+            <small style="color:var(--text-muted);font-size:var(--text-xs);display:block;margin-top:var(--sp-1);">
+              0-20: Dependencia total | 21-60: Dependencia grave | 61-90: Moderada | 91-99: Leve | 100: Independiente
+            </small>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-mobility">Movilidad</label>
+            <select class="form-input" id="p-mobility">
+              <option value="">Seleccionar...</option>
+              <option value="ambulante">Ambulante</option>
+              <option value="ambulante_ayuda">Ambulante con ayuda</option>
+              <option value="silla_ruedas">Silla de ruedas</option>
+              <option value="postrado">Postrado</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- SECCI脫N 4: Cuidador -->
+        <h3 style="font-size:var(--text-md);margin:var(--sp-5) 0 var(--sp-3);color:var(--clr-teal-400);">
+          馃懃 Cuidador
+        </h3>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="p-caregiver-name">Nombre del cuidador</label>
+            <input class="form-input" type="text" id="p-caregiver-name" placeholder="Pedro Gonz谩lez" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-caregiver-phone">Tel茅fono del cuidador</label>
+            <input class="form-input" type="tel" id="p-caregiver-phone" placeholder="+56 9 8765 4321" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="p-comorbidities">Observaciones adicionales</label>
+          <textarea class="form-input" id="p-comorbidities" rows="2" 
+            placeholder="Cualquier informaci贸n relevante..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--full" style="margin-top:var(--sp-4);">
+          Crear paciente
+        </button>
       </form>
     </div>
   </div>
 </div>
+```
 
-<!-- Modal: Create Wound -->
+```html
+<!-- Modal: Create Wound - MEJORADO CON CLASIFICACI脫N CL脥NICA -->
 <div class="modal-overlay" id="modal-wound">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-wound-title">
+  <div class="modal" role="dialog" aria-modal="true">
     <div class="modal__handle"></div>
     <div class="modal__header">
-      <h2 class="modal__title" id="modal-wound-title">Nueva herida</h2>
+      <h2 class="modal__title">Nueva herida</h2>
       <button class="modal__close" id="btn-close-wound" aria-label="Cerrar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
       </button>
     </div>
+    <div class="modal__body">
+      <form id="form-wound" novalidate>
+        <input type="hidden" id="w-patient-id" />
+        
+        <!-- SECCI脫N 1: Clasificaci贸n -->
+        <h3 style="font-size:var(--text-md);margin-bottom:var(--sp-3);color:var(--clr-teal-400);">
+          馃彿锔?Clasificaci贸n
+        </h3>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="w-type-standard">Tipo de herida <span class="required">*</span></label>
+            <select class="form-input" id="w-type-standard" required>
+              <option value="">Seleccionar...</option>
+              <option value="ulcera_presion">脷lcera por presi贸n</option>
+              <option value="ulcera_venosa">脷lcera venosa</option>
+              <option value="ulcera_arterial">脷lcera arterial</option>
+              <option value="pie_diabetico">Pie diab茅tico</option>
+              <option value="ulcera_mixta">脷lcera mixta</option>
+              <option value="traumatica">Traum谩tica</option>
+              <option value="quirurgica">Quir煤rgica</option>
+              <option value="quemadura">Quemadura</option>
+              <option value="otra">Otra</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="w-grade">Grado/Estadio <span class="required">*</span></label>
+            <select class="form-input" id="w-grade" required>
+              <option value="">Seleccionar...</option>
+              <option value="1">Grado 1 - Eritema no blanqueable</option>
+              <option value="2">Grado 2 - P茅rdida parcial espesor</option>
+              <option value="3">Grado 3 - P茅rdida total espesor</option>
+              <option value="4">Grado 4 - P茅rdida total + exposici贸n 贸sea</option>
+              <option value="no_estadiable">No estadiable</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- SECCI脫N 2: Ubicaci贸n y Dimensiones -->
+        <h3 style="font-size:var(--text-md);margin:var(--sp-5) 0 var(--sp-3);color:var(--clr-teal-400);">
+          馃搷 Ubicaci贸n y Medidas
+        </h3>
+
+        <div class="form-group">
+          <label class="form-label" for="w-location">Ubicaci贸n anat贸mica <span class="required">*</span></label>
+          <input class="form-input" type="text" id="w-location" 
+            placeholder="Ej: Sacro, tal贸n derecho, regi贸n gl煤tea..." required />
+        </div>
+
+        <div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="form-group">
+            <label class="form-label" for="w-length">Largo (cm)</label>
+            <input class="form-input" type="number" id="w-length" step="0.1" min="0" placeholder="0.0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="w-width">Ancho (cm)</label>
+            <input class="form-input" type="number" id="w-width" step="0.1" min="0" placeholder="0.0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="w-depth">Profundidad (cm)</label>
+            <input class="form-input" type="number" id="w-depth" step="0.1" min="0" placeholder="0.0" />
+          </div>
+        </div>
+
+        <!-- SECCI脫N 3: Caracter铆sticas Cl铆nicas -->
+        <h3 style="font-size:var(--text-md);margin:var(--sp-5) 0 var(--sp-3);color:var(--clr-teal-400);">
+          馃敩 Caracter铆sticas Cl铆nicas
+        </h3>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="w-exudate-amount">Cantidad de exudado</label>
+            <select class="form-input" id="w-exudate-amount">
+              <option value="">Seleccionar...</option>
+              <option value="escaso">Escaso</option>
+              <option value="moderado">Moderado</option>
+              <option value="abundante">Abundante</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="w-exudate-type">Tipo de exudado</label>
+            <select class="form-input" id="w-exudate-type">
+              <option value="">Seleccionar...</option>
+              <option value="seroso">Seroso</option>
+              <option value="sanguinolento">Sanguinolento</option>
+              <option value="serosanguinolento">Serosanguinolento</option>
+              <option value="purulento">Purulento</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="w-pain">Dolor (EVA 0-10)</label>
+            <input class="form-input" type="number" id="w-pain" min="0" max="10" placeholder="0" />
+            <small style="color:var(--text-muted);font-size:var(--text-xs);display:block;margin-top:var(--sp-1);">
+              0: Sin dolor | 10: Dolor m谩ximo
+            </small>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="w-infection">Signos de infecci贸n</label>
+            <select class="form-input" id="w-infection">
+              <option value="no">No</option>
+              <option value="si">S铆 - Requiere evaluaci贸n</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- SECCI脫N 4: Estado y Observaciones -->
+        <h3 style="font-size:var(--text-md);margin:var(--sp-5) 0 var(--sp-3);color:var(--clr-teal-400);">
+          馃摑 Estado y Observaciones
+        </h3>
+
+        <div class="form-group">
+          <label class="form-label" for="w-status">Estado actual</label>
+          <select class="form-input" id="w-status">
+            <option value="active">Activa</option>
+            <option value="critical">Cr铆tica - Requiere atenci贸n urgente</option>
+            <option value="pending">En evaluaci贸n</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="w-dimensions">Observaciones adicionales</label>
+          <textarea class="form-input" id="w-dimensions" rows="3" 
+            placeholder="Descripci贸n del lecho, bordes, piel perilesional, etc."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--full" style="margin-top:var(--sp-4);">
+          Registrar herida
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+```
+
+    
     <div class="modal__body">
       <form id="form-wound" novalidate>
         <input type="hidden" id="w-patient-id" />
@@ -871,48 +1112,99 @@
 
     // ── Form submissions ─────────────────────────────
     // Patient form
-    document.getElementById('form-patient').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const data = {
-        name:          document.getElementById('p-name').value.trim(),
-        age:           document.getElementById('p-age').value,
-        diagnosis:     document.getElementById('p-diagnosis').value.trim(),
-        comorbidities: document.getElementById('p-comorbidities').value.trim()
-      };
-      if (!data.name || !data.age) {
-        window.CURA360.showToast('Nombre y edad son obligatorios.');
-        return;
-      }
-      const result = await window.CURA360.patients.create(data);
-      if (result) {
-        window.CURA360.closeModal('modal-patient');
-        document.getElementById('form-patient').reset();
-        await _loadDashboard();
-      }
-    });
+   ```javascript
+// Patient form - MEJORADO CON CAMPOS CL脥NICOS
+document.getElementById('form-patient').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const data = {
+    // Datos personales
+    name: document.getElementById('p-name').value.trim(),
+    rut: document.getElementById('p-rut').value.trim(),
+    age: document.getElementById('p-age').value,
+    phone: document.getElementById('p-phone').value.trim(),
+    address: document.getElementById('p-address').value.trim(),
+    commune: document.getElementById('p-commune').value.trim(),
+    
+    // Antecedentes cl铆nicos
+    diagnosis: document.getElementById('p-diagnosis').value.trim(),
+    medical_history: document.getElementById('p-medical-history').value.trim(),
+    medications: document.getElementById('p-medications').value.trim(),
+    allergies: document.getElementById('p-allergies').value.trim(),
+    
+    // Evaluaci贸n funcional
+    barthel_index: document.getElementById('p-barthel').value || null,
+    mobility: document.getElementById('p-mobility').value || null,
+    
+    // Cuidador
+    caregiver_name: document.getElementById('p-caregiver-name').value.trim(),
+    caregiver_phone: document.getElementById('p-caregiver-phone').value.trim(),
+    
+    // Observaciones
+    comorbidities: document.getElementById('p-comorbidities').value.trim()
+  };
+  
+  // Validaci贸n b谩sica
+  if (!data.name || !data.age) {
+    window.CURA360.showToast('Nombre y edad son obligatorios.');
+    return;
+  }
+  
+  const result = await window.CURA360.patients.create(data);
+  if (result) {
+    window.CURA360.closeModal('modal-patient');
+    document.getElementById('form-patient').reset();
+    await _loadDashboard();
+  }
+});
+```
 
     // Wound form
-    document.getElementById('form-wound').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const patientId = document.getElementById('w-patient-id').value;
-      const data = {
-        type:       document.getElementById('w-type').value,
-        location:   document.getElementById('w-location').value,
-        dimensions: document.getElementById('w-dimensions').value.trim(),
-        status:     document.getElementById('w-status').value
-      };
-      if (!data.type || !data.location) {
-        window.CURA360.showToast('Tipo y ubicación son obligatorios.');
-        return;
-      }
-      const result = await window.CURA360.wounds.create(patientId, data);
-      if (result) {
-        window.CURA360.closeModal('modal-wound');
-        document.getElementById('form-wound').reset();
-        // Reload current view
-        if (_selectedPatientId) await _loadPatientDetail(_selectedPatientId);
-      }
-    });
+  ```javascript
+// Wound form - MEJORADO CON CLASIFICACI脫N CL脥NICA
+document.getElementById('form-wound').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const typeSelect = document.getElementById('w-type-standard');
+  
+  const data = {
+    patient_id: document.getElementById('w-patient-id').value,
+    
+    // Clasificaci贸n
+    wound_type_standard: typeSelect.value,
+    type: typeSelect.options[typeSelect.selectedIndex].text,
+    wound_grade: document.getElementById('w-grade').value,
+    
+    // Ubicaci贸n y medidas
+    location: document.getElementById('w-location').value.trim(),
+    length_cm: document.getElementById('w-length').value || null,
+    width_cm: document.getElementById('w-width').value || null,
+    depth_cm: document.getElementById('w-depth').value || null,
+    
+    // Caracter铆sticas cl铆nicas
+    exudate_amount: document.getElementById('w-exudate-amount').value || null,
+    exudate_type: document.getElementById('w-exudate-type').value || null,
+    pain_scale: document.getElementById('w-pain').value || null,
+    infection_signs: document.getElementById('w-infection').value === 'si',
+    
+    // Estado
+    status: document.getElementById('w-status').value,
+    dimensions: document.getElementById('w-dimensions').value.trim()  // Observaciones
+  };
+  
+  if (!data.wound_type_standard || !data.wound_grade || !data.location) {
+    window.CURA360.showToast('Complete los campos obligatorios.');
+    return;
+  }
+  
+  const result = await window.CURA360.wounds.create(data.patient_id, data);
+  if (result) {
+    window.CURA360.closeModal('modal-wound');
+    document.getElementById('form-wound').reset();
+    await _loadPatientDetail(_selectedPatientId);
+  }
+});
+```
 
     // Treatment form
     document.getElementById('form-treatment').addEventListener('submit', async (e) => {
