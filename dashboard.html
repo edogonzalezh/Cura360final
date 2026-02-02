@@ -105,15 +105,27 @@
       </a>
     </div>
 
-    <div class="sidebar__footer">
-      <button class="sidebar__user" id="btn-logout-sidebar" aria-label="Cerrar sesión">
-        <div class="sidebar__avatar" id="sidebar-avatar">P</div>
-        <div class="sidebar__user-info">
-          <div class="sidebar__user-name" id="sidebar-email">—</div>
-          <div class="sidebar__user-role">Profesional</div>
-        </div>
-      </button>
+   <div class="sidebar__footer">
+  <div class="sidebar__user">
+    <div class="sidebar__avatar" id="sidebar-avatar">P</div>
+    <div class="sidebar__user-info">
+      <div class="sidebar__user-name" id="sidebar-email">—</div>
+      <div class="sidebar__user-role">Profesional</div>
     </div>
+  </div>
+  
+  <!-- NUEVO: Botón logout -->
+  <div class="sidebar__logout">
+    <button class="sidebar__logout-btn" id="btn-logout-sidebar-new">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Cerrar sesión
+    </button>
+  </div>
+</div>
   </nav>
 
   <!-- Main content -->
@@ -615,8 +627,8 @@
           <div class="form-group">
             <label class="form-label" for="w-infection">Signos de infección</label>
             <select class="form-input" id="w-infection">
-              <option value="no">No</option>
-              <option value="si">Sí - Requiere evaluación</option>
+              <option value="false">No</option>
+              <option value="true">Sí - Requiere evaluación</option>
             </select>
           </div>
         </div>
@@ -625,6 +637,21 @@
         <h3 style="font-size:var(--text-md);margin:var(--sp-5) 0 var(--sp-3);color:var(--clr-teal-400);">
           📝 Estado y Observaciones
         </h3>
+
+        <!-- NUEVO: Clinical Stage -->
+        <div class="form-group">
+          <label class="form-label" for="w-clinical-stage">Estado del proceso</label>
+          <select class="form-input" id="w-clinical-stage">
+            <option value="valoracion_inicial">📋 Valoración inicial (Paso 1/5)</option>
+            <option value="tratamiento_en_curso" selected>🔬 Tratamiento en curso (Paso 2/5)</option>
+            <option value="bajo_observacion">⚠️ Bajo observación (Paso 3/5)</option>
+            <option value="evolucion_favorable">📈 Evolución favorable (Paso 4/5)</option>
+            <option value="alta_clinica">✅ Alta clínica (Paso 5/5)</option>
+          </select>
+          <small style="color:var(--text-muted);font-size:var(--text-xs);display:block;margin-top:var(--sp-1);">
+            Indica en qué etapa del tratamiento se encuentra
+          </small>
+        </div>
 
         <div class="form-group">
           <label class="form-label" for="w-status">Estado actual</label>
@@ -700,34 +727,27 @@
   'use strict';
 
   // ── State ──────────────────────────────────────────
-  let _selectedPatientId = null;   // tracks the patient in detail view
-  let _selectedWoundId   = null;   // tracks the wound in detail view
-  let _allPatients       = [];     // cached patient list
+  let _selectedPatientId = null;
+  let _selectedWoundId   = null;
+  let _allPatients       = [];
 
   // ── Init ───────────────────────────────────────────
   (async function init() {
-    // Route guard: only professionals
     const user = await window.CURA360.auth.protectRoute(['professional']);
-    if (!user) return; // redirect handled
+    if (!user) return;
 
-    // Update sidebar user info
     document.getElementById('sidebar-email').textContent = user.email;
     document.getElementById('sidebar-avatar').textContent =
       window.CURA360.getInitials(user.email.split('@')[0]);
 
-    // Bind navigation
     _bindNavigation();
-    // Bind modals
     _bindModals();
-    // Load dashboard data
     await _loadDashboard();
-    // Hide loader
     window.CURA360.setLoader(false);
   })();
 
-  // ── Navigation (SPA-like view switching) ───────────
+  // ── Navigation ─────────────────────────────────────
   function _bindNavigation() {
-    // All nav links with data-page attribute
     document.querySelectorAll('[data-page]').forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
@@ -735,10 +755,8 @@
       });
     });
 
-    // Back buttons
     document.getElementById('btn-back-patients').addEventListener('click', () => _navigateTo('patients'));
     document.getElementById('btn-back-wound').addEventListener('click', () => {
-      // Go back to patient detail if we have a selected patient
       if (_selectedPatientId) {
         _navigateTo('patient-detail');
       } else {
@@ -747,15 +765,8 @@
     });
   }
 
-  /**
-   * Switches the visible view section.
-   * @param {string} page - 'dashboard' | 'patients' | 'wounds' | 'patient-detail' | 'wound-detail'
-   */
   async function _navigateTo(page) {
-    // Hide all views
     document.querySelectorAll('[id^="view-"]').forEach(v => v.style.display = 'none');
-
-    // Update nav active states
     document.querySelectorAll('[data-page]').forEach(n => n.classList.remove('active'));
     document.querySelectorAll(`[data-page="${page}"]`).forEach(n => n.classList.add('active'));
 
@@ -783,11 +794,10 @@
     }
   }
 
-  // ── Dashboard loader ───────────────────────────────
+  // ── Dashboard ──────────────────────────────────────
   async function _loadDashboard() {
     _allPatients = await window.CURA360.patients.list();
 
-    // Gather all wounds
     let allWounds = [];
     let allTreatments = [];
     for (const p of _allPatients) {
@@ -799,12 +809,10 @@
       }
     }
 
-    // Update stats
     document.getElementById('stat-patients').textContent   = _allPatients.length;
     document.getElementById('stat-wounds').textContent     = allWounds.length;
     document.getElementById('stat-treatments').textContent = allTreatments.length;
 
-    // Render recent patients (last 4)
     const container = document.getElementById('recent-patients');
     if (_allPatients.length === 0) {
       container.innerHTML = _emptyStateHTML('No hay pacientes', 'Cree su primer paciente para comenzar.');
@@ -813,7 +821,6 @@
     }
   }
 
-  // ── Patients list ──────────────────────────────────
   async function _loadPatientsList() {
     _allPatients = await window.CURA360.patients.list();
     const container = document.getElementById('patients-list');
@@ -824,14 +831,12 @@
     }
   }
 
-  // ── All wounds ─────────────────────────────────────
   async function _loadAllWounds() {
     if (_allPatients.length === 0) {
       _allPatients = await window.CURA360.patients.list();
     }
 
     let allWounds = [];
-    // Attach patient name for display
     for (const p of _allPatients) {
       const wounds = await window.CURA360.wounds.listByPatient(p.id);
       wounds.forEach(w => { w._patientName = p.name; });
@@ -846,7 +851,6 @@
     }
   }
 
-  // ── Patient detail ─────────────────────────────────
   async function _loadPatientDetail(patientId) {
     const patient = await window.CURA360.patients.getById(patientId);
     if (!patient) { _navigateTo('patients'); return; }
@@ -857,7 +861,6 @@
     document.getElementById('detail-diagnosis').textContent   = patient.diagnosis || '—';
     document.getElementById('detail-comorbidities').textContent = patient.comorbidities || '—';
 
-    // Load wounds for this patient
     const wounds = await window.CURA360.wounds.listByPatient(patientId);
     const wContainer = document.getElementById('detail-wounds-list');
     if (wounds.length === 0) {
@@ -867,12 +870,10 @@
     }
   }
 
-  // ── Wound detail ───────────────────────────────────
   async function _loadWoundDetail(woundId) {
     const wound = await window.CURA360.wounds.getById(woundId);
     if (!wound) { _navigateTo('wounds'); return; }
 
-    // Find patient name
     const patient = await window.CURA360.patients.getById(wound.patient_id);
 
     document.getElementById('wd-type').textContent       = wound.type;
@@ -881,14 +882,12 @@
     document.getElementById('wd-created').textContent    = window.CURA360.formatDate(wound.created_at);
     document.getElementById('wd-patient').textContent    = patient ? patient.name : '—';
 
-    // Status badge
     const statusMap = { active:'badge--active', pending:'badge--pending', critical:'badge--critical', closed:'badge--closed' };
     const statusLabel = { active:'Activa', pending:'En evaluación', critical:'Crítica', closed:'Cerrada' };
     const badge = document.getElementById('wd-status-badge');
     badge.className = 'badge ' + (statusMap[wound.status] || 'badge--active');
     badge.textContent = statusLabel[wound.status] || wound.status;
 
-    // Load treatments
     const treatments = await window.CURA360.treatments.listByWound(woundId);
     const tContainer = document.getElementById('wd-treatments');
     if (treatments.length === 0) {
@@ -908,10 +907,7 @@
       '</div>';
     }
 
-    // Load images
     await _loadWoundImages(woundId);
-    
-    // Bind image handlers (upload, gallery clicks)
     _bindImageHandlers();
   }
 
@@ -921,23 +917,19 @@
 
   let _currentWoundImages = [];
 
-  // ── Load images for current wound ────────────────────
   async function _loadWoundImages(woundId) {
     _currentWoundImages = await window.CURA360.images.list(woundId);
     
-    // Update counter
     const count = _currentWoundImages.length;
     document.getElementById('wd-images-count').textContent = 
       count === 0 ? 'Sin fotos' : `${count} ${count === 1 ? 'foto' : 'fotos'}`;
 
-    // Render gallery
     const gallery = document.getElementById('wd-images-gallery');
     if (count === 0) {
       gallery.innerHTML = '<p style="color:var(--text-muted);font-size:var(--text-sm);text-align:center;padding:var(--sp-6);">Aún no hay fotografías de esta herida.</p>';
       return;
     }
 
-    // Load URLs and render
     const items = await Promise.all(
       _currentWoundImages.map(async (img) => {
         const url = await window.CURA360.images.getSignedUrl(img.storage_path);
@@ -958,50 +950,36 @@
     `).join('');
   }
 
-  // ── Handle image upload ──────────────────────────────
-  // Bind handlers only when wound detail view is loaded
   function _bindImageHandlers() {
     const uploadInput = document.getElementById('image-upload-input');
     const gallery = document.getElementById('wd-images-gallery');
     
-    if (!uploadInput || !gallery) return; // Exit if elements don't exist
+    if (!uploadInput || !gallery) return;
 
-    // Remove old listeners if any (prevents duplicates)
     const newUploadInput = uploadInput.cloneNode(true);
     uploadInput.parentNode.replaceChild(newUploadInput, uploadInput);
     
     const newGallery = gallery.cloneNode(true);
     gallery.parentNode.replaceChild(newGallery, gallery);
 
-    // Upload handler
     document.getElementById('image-upload-input').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
-      // Show loading
       document.getElementById('image-upload-loading').classList.add('active');
-
-      // Upload
       const result = await window.CURA360.images.upload(_selectedWoundId, file);
-
-      // Hide loading
       document.getElementById('image-upload-loading').classList.remove('active');
 
       if (result) {
-        // Reload gallery
         await _loadWoundImages(_selectedWoundId);
       }
-
-      // Reset input
       e.target.value = '';
     });
 
-    // Gallery click handler (view/delete)
     document.getElementById('wd-images-gallery').addEventListener('click', async (e) => {
       const item = e.target.closest('.image-gallery-item');
       if (!item) return;
 
-      // Check if delete button was clicked
       const deleteBtn = e.target.closest('.image-gallery-item__delete');
       if (deleteBtn) {
         const imageId = deleteBtn.getAttribute('data-image-id');
@@ -1010,7 +988,6 @@
         return;
       }
 
-      // Open viewer
       const img = item.querySelector('.image-gallery-item__img');
       const date = item.querySelector('.image-gallery-item__date').textContent;
       
@@ -1020,8 +997,6 @@
     });
   }
 
-  // ── Close image viewer ───────────────────────────────
-  // These elements exist always in the DOM
   const imageViewer = document.getElementById('image-viewer');
   const imageViewerClose = document.getElementById('image-viewer-close');
   
@@ -1039,7 +1014,6 @@
     });
   }
 
-  // ── Delete image confirmation ────────────────────────
   function _confirmDeleteImage(imageId, storagePath) {
     if (!confirm('¿Eliminar esta imagen? Esta acción no se puede deshacer.')) {
       return;
@@ -1054,21 +1028,18 @@
 
   // ── Modal bindings ─────────────────────────────────
   function _bindModals() {
-    // Open patient modal
     ['btn-new-patient', 'btn-new-patient-2'].forEach(id => {
       const btn = document.getElementById(id);
       if (btn) btn.addEventListener('click', () => window.CURA360.openModal('modal-patient'));
     });
     document.getElementById('btn-close-patient').addEventListener('click', () => window.CURA360.closeModal('modal-patient'));
 
-    // Open wound modal
     document.getElementById('btn-new-wound').addEventListener('click', () => {
       document.getElementById('w-patient-id').value = _selectedPatientId;
       window.CURA360.openModal('modal-wound');
     });
     document.getElementById('btn-close-wound').addEventListener('click', () => window.CURA360.closeModal('modal-wound'));
 
-    // Open treatment modal
     document.getElementById('btn-new-treatment').addEventListener('click', () => {
       document.getElementById('t-wound-id').value = _selectedWoundId;
       window.CURA360.openModal('modal-treatment');
@@ -1076,7 +1047,6 @@
     document.getElementById('btn-close-treatment').addEventListener('click', () => window.CURA360.closeModal('modal-treatment'));
 
     // ── Form submissions ─────────────────────────────
-    // Patient form
     document.getElementById('form-patient').addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = {
@@ -1097,64 +1067,54 @@
       }
     });
 
-    // Wound form
-// Wound form
-document.getElementById('form-wound').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const patientId = document.getElementById('w-patient-id').value;
-  
-  // Extraer tipo estándar y generar texto legible
-  const typeStandard = document.getElementById('w-type-standard').value;
-  const typeText = {
-    'ulcera_presion': 'Úlcera por presión',
-    'ulcera_venosa': 'Úlcera venosa',
-    'ulcera_arterial': 'Úlcera arterial',
-    'pie_diabetico': 'Pie diabético',
-    'ulcera_mixta': 'Úlcera mixta',
-    'traumatica': 'Traumática',
-    'quirurgica': 'Quirúrgica',
-    'quemadura': 'Quemadura',
-    'otra': 'Otra'
-  }[typeStandard] || typeStandard;
-  
-  const data = {
-    // Clasificación
-    wound_type_standard: typeStandard,
-    wound_grade: document.getElementById('w-grade').value,
-    type: typeText, // Para compatibilidad con vistas existentes
-    
-    // Ubicación y medidas
-    location: document.getElementById('w-location').value,
-    length_cm: parseFloat(document.getElementById('w-length').value) || null,
-    width_cm: parseFloat(document.getElementById('w-width').value) || null,
-    depth_cm: parseFloat(document.getElementById('w-depth').value) || null,
-    
-    // Características clínicas
-    exudate_amount: document.getElementById('w-exudate-amount').value || null,
-    exudate_type: document.getElementById('w-exudate-type').value || null,
-    pain_scale: parseInt(document.getElementById('w-pain').value) || null,
-    infection_signs: document.getElementById('w-infection').value,
-    
-    // Estado y observaciones
-    status: document.getElementById('w-status').value,
-    dimensions: document.getElementById('w-dimensions').value.trim()
-  };
-  
-  if (!data.wound_type_standard || !data.wound_grade || !data.location) {
-    window.CURA360.showToast('Tipo, grado y ubicación son obligatorios.');
-    return;
-  }
-  
-  const result = await window.CURA360.wounds.create(patientId, data);
-  if (result) {
-    window.CURA360.closeModal('modal-wound');
-    document.getElementById('form-wound').reset();
-    // Reload current view
-    if (_selectedPatientId) await _loadPatientDetail(_selectedPatientId);
-  }
-});
+    // Wound form - CORREGIDO
+    document.getElementById('form-wound').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const patientId = document.getElementById('w-patient-id').value;
+      
+      const typeStandard = document.getElementById('w-type-standard').value;
+      const typeText = {
+        'ulcera_presion': 'Úlcera por presión',
+        'ulcera_venosa': 'Úlcera venosa',
+        'ulcera_arterial': 'Úlcera arterial',
+        'pie_diabetico': 'Pie diabético',
+        'ulcera_mixta': 'Úlcera mixta',
+        'traumatica': 'Traumática',
+        'quirurgica': 'Quirúrgica',
+        'quemadura': 'Quemadura',
+        'otra': 'Otra'
+      }[typeStandard] || typeStandard;
+      
+      const data = {
+        wound_type_standard: typeStandard,
+        wound_grade: document.getElementById('w-grade').value,
+        type: typeText,
+        clinical_stage: document.getElementById('w-clinical-stage').value,
+        location: document.getElementById('w-location').value,
+        length_cm: parseFloat(document.getElementById('w-length').value) || null,
+        width_cm: parseFloat(document.getElementById('w-width').value) || null,
+        depth_cm: parseFloat(document.getElementById('w-depth').value) || null,
+        exudate_amount: document.getElementById('w-exudate-amount').value || null,
+        exudate_type: document.getElementById('w-exudate-type').value || null,
+        pain_scale: parseInt(document.getElementById('w-pain').value) || null,
+        infection_signs: document.getElementById('w-infection').value === 'true',
+        status: document.getElementById('w-status').value,
+        dimensions: document.getElementById('w-dimensions').value.trim()
+      };
+      
+      if (!data.wound_type_standard || !data.wound_grade || !data.location) {
+        window.CURA360.showToast('Tipo, grado y ubicación son obligatorios.');
+        return;
+      }
+      
+      const result = await window.CURA360.wounds.create(patientId, data);
+      if (result) {
+        window.CURA360.closeModal('modal-wound');
+        document.getElementById('form-wound').reset();
+        if (_selectedPatientId) await _loadPatientDetail(_selectedPatientId);
+      }
+    });
 
-    // Treatment form
     document.getElementById('form-treatment').addEventListener('submit', async (e) => {
       e.preventDefault();
       const woundId = document.getElementById('t-wound-id').value;
@@ -1177,7 +1137,7 @@ document.getElementById('form-wound').addEventListener('submit', async (e) => {
   }
 
   // ── Logout ─────────────────────────────────────────
-  ['btn-logout', 'btn-logout-sidebar'].forEach(id => {
+  ['btn-logout', 'btn-logout-sidebar', 'btn-logout-sidebar-new'].forEach(id => {
     const btn = document.getElementById(id);
     if (btn) btn.addEventListener('click', () => window.CURA360.auth.logout());
   });
@@ -1226,9 +1186,7 @@ document.getElementById('form-wound').addEventListener('submit', async (e) => {
       </div>`;
   }
 
-  // ── Event delegation for list-item clicks ──────────
   document.getElementById('main-content').addEventListener('click', (e) => {
-    // Patient item click → navigate to detail
     const patientItem = e.target.closest('[data-patient-id]');
     if (patientItem && !patientItem.hasAttribute('data-wound-id')) {
       _selectedPatientId = patientItem.getAttribute('data-patient-id');
@@ -1236,7 +1194,6 @@ document.getElementById('form-wound').addEventListener('submit', async (e) => {
       return;
     }
 
-    // Wound item click → navigate to wound detail
     const woundItem = e.target.closest('[data-wound-id]');
     if (woundItem) {
       _selectedWoundId   = woundItem.getAttribute('data-wound-id');
@@ -1257,9 +1214,7 @@ document.getElementById('form-wound').addEventListener('submit', async (e) => {
     </svg>
   </button>
   <img class="image-viewer__img" id="image-viewer-img" alt="Imagen de herida" />
-  <div class="image-viewer__info" id="image-viewer-info">
-    <!-- Date and notes -->
-  </div>
+  <div class="image-viewer__info" id="image-viewer-info"></div>
 </div>
 
 <!-- Upload Loading Overlay -->
