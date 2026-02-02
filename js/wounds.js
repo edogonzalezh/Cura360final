@@ -41,11 +41,40 @@
 
     const payload = {
       patient_id: patientId,
-      type:       data.type || '',
+      
+      // Clasificación estándar
+      wound_type_standard: data.wound_type_standard || null,
+      type:                data.type || '',
+      wound_grade:         data.wound_grade || null,
+      
+      // Ubicación y medidas
       location:   data.location || '',
-      dimensions: data.dimensions || '',
+      length_cm:  data.length_cm ? parseFloat(data.length_cm) : null,
+      width_cm:   data.width_cm ? parseFloat(data.width_cm) : null,
+      depth_cm:   data.depth_cm ? parseFloat(data.depth_cm) : null,
+      
+      // Características clínicas
+      exudate_amount:  data.exudate_amount || null,
+      exudate_type:    data.exudate_type || null,
+      pain_scale:      data.pain_scale ? parseInt(data.pain_scale, 10) : null,
+      infection_signs: data.infection_signs || false,
+      
+      // Estado y observaciones
+      dimensions: data.dimensions || '',  // Observaciones adicionales
       status:     data.status || 'active'
     };
+
+    // Remove null/empty values
+    Object.keys(payload).forEach(key => {
+      if (payload[key] === null || payload[key] === '') {
+        delete payload[key];
+      }
+    });
+    
+    // Ensure required fields
+    payload.patient_id = patientId;
+    payload.location = data.location || '';
+    payload.status = data.status || 'active';
 
     try {
       const response = await fetch(SUPABASE_URL + '/rest/v1/wounds', {
