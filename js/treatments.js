@@ -1,106 +1,159 @@
 /**
- * treatments.js — Treatment / Curación CRUD
- * ───────────────────────────────────────────
- * Uses direct fetch API with token from localStorage.
- * Workaround for Supabase client not attaching auth tokens correctly.
- *
- * Public API (window.CURA360.treatments):
- *   create(woundId, data)     → Promise<Treatment>
- *   listByWound(woundId)      → Promise<Treatment[]>  (chronological)
+ * CURA360 - Treatments Module (with Clinical Stage Auto-Evaluation)
+ * Handles wound treatments/curaciones + triggers automatic stage evaluation
  */
 
 (function () {
   'use strict';
 
-  const sb = window.CURA360.supabase;
-  const SUPABASE_URL = sb.supabaseUrl;
-  const SUPABASE_KEY = sb.supabaseKey;
-  const STORAGE_KEY = 'sb-' + SUPABASE_URL.match(/\/\/(.+?)\.supabase/)[1] + '-auth-token';
+  const treatments = {
+    
+    /**
+     * Create a new treatment and trigger automatic stage evaluation
+     */
+    async create(woundId, data) {
+      try {
+        window.CURA360.setLoader(true);
+        
+        data.wound_id = woundId;
+        data.created_at = new Date().toISOString();
+        
+        // Clean data - remove empty values
+        const cleanData = {};
+        for (const key in data) {
+          if (data[key] !== null && data[key] !== '' && data[key] !== undefined) {
+            cleanData[key] = data[key];
+          }
+        }
+        
+        // Ensure required fields
+        if (!cleanData.wound_id || !cleanData.technique) {
+          throw new Error('wound_id y technique son requeridos');
+        }
+        
+        const { data: treatment, error } = await window.CURA360.supabase
+          .from('treatments')
+          .insert([cleanData])
+          .select()
+          .single();
+          
+        if (error) throw error;
+        
+        window.CURA360.showToast('Curación registrada correctamente');
+        
+        // 🆕 EVALUAR Y ACTUALIZAR CLINICAL STAGE AUTOMÁTICAMENTE
+        // Esto ejecuta las reglas automáticas después de cada curación
+        if (window.CURA360.wounds && window.CURA360.wounds.evaluateStage) {
+          await window.CURA360.wounds.evaluateStage(woundId);
+          console.log('✅ Clinical stage evaluated after treatment');
+        }
+        
+        return treatment;
+        
+      } catch (err) {
+        console.error('Error creating treatment:', err);
+        window.CURA360.showToast('Error al registrar curación: ' + err.message);
+        return null;
+      } finally {
+        window.CURA360.setLoader(false);
+      }
+    },
 
-  // ── Helper: get auth token ───────────────────────────
-  function getToken() {
-    const sessionData = localStorage.getItem(STORAGE_KEY);
-    if (!sessionData) return null;
-    try {
-      const session = JSON.parse(sessionData);
-      return session.access_token;
-    } catch (err) {
-      console.error('[treatments] Error parsing session:', err);
-      return null;
-    }
-  }
-
-  // ── Create treatment ─────────────────────────────────
-  async function create(woundId, data) {
-    const token = getToken();
-    if (!token) {
-      window.CURA360.showToast('Sesión expirada. Inicie sesión de nuevo.');
-      return null;
-    }
-
-    const payload = {
-      wound_id:  woundId,
-      technique: data.technique || '',
-      supplies:  data.supplies  || '',
-      notes:     data.notes     || '',
-      created_at: new Date().toISOString()
-    };
-
-    try {
-      const response = await fetch(SUPABASE_URL + '/rest/v1/treatments', {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': 'Bearer ' + token,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        console.error('[treatments] create HTTP error:', response.status);
-        window.CURA360.showToast('Error al registrar curación.');
+    /**
+     * Get treatment by ID
+     */
+    async getById(treatmentId) {
+      try {
+        const { data, error } = await window.CURA360.supabase
+          .from('treatments')
+          .select('*')
+          .eq('id', treatmentId)
+          .single();
+          
+        if (error) throw error;
+        return data;
+        
+      } catch (err) {
+        console.error('Error getting treatment:', err);
         return null;
       }
+    },
 
-      const rows = await response.json();
-      window.CURA360.showToast('Curación registrada exitosamente.', 'success');
-      return rows[0];
-    } catch (err) {
-      console.error('[treatments] create error:', err);
-      window.CURA360.showToast('Error al registrar curación.');
-      return null;
-    }
-  }
-
-  // ── List treatments for a wound ──────────────────────
-  async function listByWound(woundId) {
-    const token = getToken();
-    if (!token) return [];
-
-    try {
-      const response = await fetch(SUPABASE_URL + '/rest/v1/treatments?wound_id=eq.' + woundId + '&select=*&order=created_at.desc', {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': 'Bearer ' + token,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        console.error('[treatments] listByWound HTTP error:', response.status);
+    /**
+     * List treatments by wound
+     */
+    async listByWound(woundId) {
+      try {
+        const { data, error } = await window.CURA360.supabase
+          .from('treatments')
+          .select('*')
+          .eq('wound_id', woundId)
+          .order('created_at', { ascending: false });
+          
+        if (error) throw error;
+        return data || [];
+        
+      } catch (err) {
+        console.error('Error listing treatments:', err);
         return [];
       }
+    },
 
-      return await response.json();
-    } catch (err) {
-      console.error('[treatments] listByWound error:', err);
-      return [];
+    /**
+     * Update treatment
+     */
+    async update(treatmentId, updates) {
+      try {
+        window.CURA360.setLoader(true);
+        
+        const { error } = await window.CURA360.supabase
+          .from('treatments')
+          .update(updates)
+          .eq('id', treatmentId);
+          
+        if (error) throw error;
+        
+        window.CURA360.showToast('Curación actualizada');
+        return true;
+        
+      } catch (err) {
+        console.error('Error updating treatment:', err);
+        window.CURA360.showToast('Error al actualizar curación');
+        return false;
+      } finally {
+        window.CURA360.setLoader(false);
+      }
+    },
+
+    /**
+     * Delete treatment
+     */
+    async delete(treatmentId) {
+      try {
+        window.CURA360.setLoader(true);
+        
+        const { error } = await window.CURA360.supabase
+          .from('treatments')
+          .delete()
+          .eq('id', treatmentId);
+          
+        if (error) throw error;
+        
+        window.CURA360.showToast('Curación eliminada');
+        return true;
+        
+      } catch (err) {
+        console.error('Error deleting treatment:', err);
+        window.CURA360.showToast('Error al eliminar curación');
+        return false;
+      } finally {
+        window.CURA360.setLoader(false);
+      }
     }
-  }
+  };
 
-  // ── Expose ─────────────────────────────────────────
-  window.CURA360.treatments = { create, listByWound };
+  // Export to global namespace
+  window.CURA360 = window.CURA360 || {};
+  window.CURA360.treatments = treatments;
 
 })();
