@@ -46,12 +46,43 @@
     }
 
     const payload = {
+      // Datos personales
       name:            data.name,
       age:             parseInt(data.age, 10),
-      diagnosis:       data.diagnosis || '',
-      comorbidities:   data.comorbidities || '',
+      rut:             data.rut || null,
+      phone:           data.phone || null,
+      address:         data.address || null,
+      commune:         data.commune || null,
+      
+      // Antecedentes clínicos
+      diagnosis:       data.diagnosis || null,
+      medical_history: data.medical_history || null,
+      medications:     data.medications || null,
+      allergies:       data.allergies || null,
+      comorbidities:   data.comorbidities || null,
+      
+      // Evaluación funcional
+      barthel_index:   data.barthel_index ? parseInt(data.barthel_index, 10) : null,
+      mobility:        data.mobility || null,
+      
+      // Cuidador
+      caregiver_name:  data.caregiver_name || null,
+      caregiver_phone: data.caregiver_phone || null,
+      
       professional_id: user.id
     };
+
+    // Remove null values to keep database clean
+    Object.keys(payload).forEach(key => {
+      if (payload[key] === null || payload[key] === '') {
+        delete payload[key];
+      }
+    });
+    
+    // Ensure required fields
+    payload.professional_id = user.id;
+    payload.name = data.name;
+    payload.age = parseInt(data.age, 10);
 
     try {
       const response = await fetch(SUPABASE_URL + '/rest/v1/patients', {
@@ -140,3 +171,4 @@
   window.CURA360.patients = { create, list, getById };
 
 })();
+
