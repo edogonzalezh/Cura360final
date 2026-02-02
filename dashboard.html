@@ -726,12 +726,10 @@
 (function () {
   'use strict';
 
-  // ── State ──────────────────────────────────────────
   let _selectedPatientId = null;
   let _selectedWoundId   = null;
   let _allPatients       = [];
 
-  // ── Init ───────────────────────────────────────────
   (async function init() {
     const user = await window.CURA360.auth.protectRoute(['professional']);
     if (!user) return;
@@ -746,7 +744,6 @@
     window.CURA360.setLoader(false);
   })();
 
-  // ── Navigation ─────────────────────────────────────
   function _bindNavigation() {
     document.querySelectorAll('[data-page]').forEach(link => {
       link.addEventListener('click', (e) => {
@@ -794,7 +791,6 @@
     }
   }
 
-  // ── Dashboard ──────────────────────────────────────
   async function _loadDashboard() {
     _allPatients = await window.CURA360.patients.list();
 
@@ -887,22 +883,19 @@
     const badge = document.getElementById('wd-status-badge');
     badge.className = 'badge ' + (statusMap[wound.status] || 'badge--active');
     badge.textContent = statusLabel[wound.status] || wound.status;
-    
-// 🆕 RENDERIZAR BARRA DE PROGRESO CLINICAL STAGE
-if (wound.clinical_stage) {
-  const progressHTML = renderWoundProgress(wound);
-  const woundCard = document.querySelector('#view-wound-detail .card');
-  
-  // Remover barra anterior si existe
-  const oldProgress = document.querySelector('.wound-progress');
-  if (oldProgress) oldProgress.remove();
-  
-  // Insertar nueva barra después de la primera card
-  if (woundCard) {
-    woundCard.insertAdjacentHTML('afterend', progressHTML);
-  }
-}
-    
+
+    if (wound.clinical_stage) {
+      const progressHTML = renderWoundProgress(wound);
+      const woundCard = document.querySelector('#view-wound-detail .card');
+      
+      const oldProgress = document.querySelector('.wound-progress');
+      if (oldProgress) oldProgress.remove();
+      
+      if (woundCard) {
+        woundCard.insertAdjacentHTML('afterend', progressHTML);
+      }
+    }
+
     const treatments = await window.CURA360.treatments.listByWound(woundId);
     const tContainer = document.getElementById('wd-treatments');
     if (treatments.length === 0) {
@@ -925,10 +918,6 @@ if (wound.clinical_stage) {
     await _loadWoundImages(woundId);
     _bindImageHandlers();
   }
-
-  // ═══════════════════════════════════════════════════
-  // IMAGE MANAGEMENT
-  // ═══════════════════════════════════════════════════
 
   let _currentWoundImages = [];
 
@@ -1041,7 +1030,6 @@ if (wound.clinical_stage) {
     });
   }
 
-  // ── Modal bindings ─────────────────────────────────
   function _bindModals() {
     ['btn-new-patient', 'btn-new-patient-2'].forEach(id => {
       const btn = document.getElementById(id);
@@ -1061,7 +1049,6 @@ if (wound.clinical_stage) {
     });
     document.getElementById('btn-close-treatment').addEventListener('click', () => window.CURA360.closeModal('modal-treatment'));
 
-    // ── Form submissions ─────────────────────────────
     document.getElementById('form-patient').addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = {
@@ -1082,7 +1069,6 @@ if (wound.clinical_stage) {
       }
     });
 
-    // Wound form - CORREGIDO
     document.getElementById('form-wound').addEventListener('submit', async (e) => {
       e.preventDefault();
       const patientId = document.getElementById('w-patient-id').value;
@@ -1151,13 +1137,11 @@ if (wound.clinical_stage) {
     });
   }
 
-  // ── Logout ─────────────────────────────────────────
   ['btn-logout', 'btn-logout-sidebar', 'btn-logout-sidebar-new'].forEach(id => {
     const btn = document.getElementById(id);
     if (btn) btn.addEventListener('click', () => window.CURA360.auth.logout());
   });
 
-  // ── HTML Builders ──────────────────────────────────
   function _patientItemHTML(p) {
     return `
       <a class="list-item list-item--link" data-patient-id="${p.id}" role="button" tabindex="0">
@@ -1218,74 +1202,62 @@ if (wound.clinical_stage) {
     }
   });
 
-    // ══════════════════════════════════════════════════════════════
-// AGREGAR ESTE CÓDIGO AL FINAL DEL <script> EN DASHBOARD.HTML
-// (Justo antes del último })();)
-// ══════════════════════════════════════════════════════════════
-
-// ══════════════════════════════════════════════════════
-// CLINICAL STAGE PROGRESS BAR
-// ══════════════════════════════════════════════════════
-
-function renderWoundProgress(wound) {
-  const stages = [
-    { key: 'valoracion_inicial', icon: '📋', label: 'Valoración inicial' },
-    { key: 'tratamiento_en_curso', icon: '🔬', label: 'Tratamiento en curso' },
-    { key: 'bajo_observacion', icon: '⚠️', label: 'Bajo observación' },
-    { key: 'evolucion_favorable', icon: '📈', label: 'Evolución favorable' },
-    { key: 'alta_clinica', icon: '✅', label: 'Alta clínica' }
-  ];
-  
-  const currentStage = wound.clinical_stage || 'valoracion_inicial';
-  const currentIndex = stages.findIndex(s => s.key === currentStage);
-  const stageIndex = currentIndex >= 0 ? currentIndex : 0;
-  const currentStageData = stages[stageIndex];
-  const progressWidth = (stageIndex / (stages.length - 1)) * 100;
-  
-  return `
-    <div class="wound-progress" style="margin-top:var(--sp-4);">
-      <div class="progress-bar" style="--progress-width: ${progressWidth}%;">
-        ${stages.map((stage, i) => {
-          let className = 'progress-step';
-          if (i < stageIndex) className += ' completed';
-          if (i === stageIndex) className += ' current';
-          if (i > stageIndex) className += ' pending';
-          
-          return `<div class="${className}" title="${stage.label}">${stage.icon}</div>`;
-        }).join('')}
+  function renderWoundProgress(wound) {
+    const stages = [
+      { key: 'valoracion_inicial', icon: '📋', label: 'Valoración inicial' },
+      { key: 'tratamiento_en_curso', icon: '🔬', label: 'Tratamiento en curso' },
+      { key: 'bajo_observacion', icon: '⚠️', label: 'Bajo observación' },
+      { key: 'evolucion_favorable', icon: '📈', label: 'Evolución favorable' },
+      { key: 'alta_clinica', icon: '✅', label: 'Alta clínica' }
+    ];
+    
+    const currentStage = wound.clinical_stage || 'valoracion_inicial';
+    const currentIndex = stages.findIndex(s => s.key === currentStage);
+    const stageIndex = currentIndex >= 0 ? currentIndex : 0;
+    const currentStageData = stages[stageIndex];
+    const progressWidth = (stageIndex / (stages.length - 1)) * 100;
+    
+    return `
+      <div class="wound-progress" style="margin-top:var(--sp-4);">
+        <div class="progress-bar" style="--progress-width: ${progressWidth}%;">
+          ${stages.map((stage, i) => {
+            let className = 'progress-step';
+            if (i < stageIndex) className += ' completed';
+            if (i === stageIndex) className += ' current';
+            if (i > stageIndex) className += ' pending';
+            
+            return `<div class="${className}" title="${stage.label}">${stage.icon}</div>`;
+          }).join('')}
+        </div>
+        <div class="progress-label">
+          <span class="progress-label__icon">${currentStageData.icon}</span>
+          <span class="progress-label__text">${currentStageData.label}</span>
+          <span class="progress-label__step">Paso ${stageIndex + 1} de ${stages.length}</span>
+        </div>
+        <div class="progress-sublabel">
+          ${getStageDescription(currentStage)}
+        </div>
       </div>
-      <div class="progress-label">
-        <span class="progress-label__icon">${currentStageData.icon}</span>
-        <span class="progress-label__text">${currentStageData.label}</span>
-        <span class="progress-label__step">Paso ${stageIndex + 1} de ${stages.length}</span>
-      </div>
-      <div class="progress-sublabel">
-        ${getStageDescription(currentStage)}
-      </div>
-    </div>
-  `;
-}
+    `;
+  }
 
-function getStageDescription(stage) {
-  const descriptions = {
-    'valoracion_inicial': 'Primera valoración y registro de la herida',
-    'tratamiento_en_curso': 'Curaciones regulares en curso',
-    'bajo_observacion': 'Requiere monitoreo especial o cambio de tratamiento',
-    'evolucion_favorable': 'Evolución positiva confirmada',
-    'alta_clinica': 'Herida cicatrizada, lista para alta'
-  };
-  return descriptions[stage] || '';
-}
+  function getStageDescription(stage) {
+    const descriptions = {
+      'valoracion_inicial': 'Primera valoración y registro de la herida',
+      'tratamiento_en_curso': 'Curaciones regulares en curso',
+      'bajo_observacion': 'Requiere monitoreo especial o cambio de tratamiento',
+      'evolucion_favorable': 'Evolución positiva confirmada',
+      'alta_clinica': 'Herida cicatrizada, lista para alta'
+    };
+    return descriptions[stage] || '';
+  }
 
-// Actualizar CSS dinámicamente
-const progressStyle = document.createElement('style');
-progressStyle.textContent = `.progress-bar::after { width: var(--progress-width, 0%); }`;
-document.head.appendChild(progressStyle);
-</script>
-
+  const progressStyle = document.createElement('style');
+  progressStyle.textContent = `.progress-bar::after { width: var(--progress-width, 0%); }`;
+  document.head.appendChild(progressStyle);
 
 })();
-
+</script>
 
 <!-- Image Viewer Modal -->
 <div class="image-viewer" id="image-viewer">
