@@ -325,7 +325,8 @@ select.form-input {
   width: 100%;
   max-width: 560px;
   max-height: 85dvh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   transform: translateY(40px);
   transition: transform var(--dur-base) var(--ease-out);
   /* drag handle */
@@ -371,9 +372,10 @@ select.form-input {
 
 .modal__body { 
   padding: 0 var(--sp-5) var(--sp-6); 
-  max-height: calc(90vh - 120px);
   overflow-y: auto;
   overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Desktop: centered modal */
@@ -384,7 +386,7 @@ select.form-input {
   .modal {
     border-radius: var(--radius-2xl);
     transform: scale(.95);
-    max-height: 80dvh;
+    max-height: 90dvh;
   }
   .modal-overlay.open .modal {
     transform: scale(1);
