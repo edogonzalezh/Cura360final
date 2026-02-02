@@ -887,7 +887,22 @@
     const badge = document.getElementById('wd-status-badge');
     badge.className = 'badge ' + (statusMap[wound.status] || 'badge--active');
     badge.textContent = statusLabel[wound.status] || wound.status;
-
+    
+// 🆕 RENDERIZAR BARRA DE PROGRESO CLINICAL STAGE
+if (wound.clinical_stage) {
+  const progressHTML = renderWoundProgress(wound);
+  const woundCard = document.querySelector('#view-wound-detail .card');
+  
+  // Remover barra anterior si existe
+  const oldProgress = document.querySelector('.wound-progress');
+  if (oldProgress) oldProgress.remove();
+  
+  // Insertar nueva barra después de la primera card
+  if (woundCard) {
+    woundCard.insertAdjacentHTML('afterend', progressHTML);
+  }
+}
+    
     const treatments = await window.CURA360.treatments.listByWound(woundId);
     const tContainer = document.getElementById('wd-treatments');
     if (treatments.length === 0) {
