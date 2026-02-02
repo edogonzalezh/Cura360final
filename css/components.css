@@ -369,7 +369,12 @@ select.form-input {
 }
 .modal__close svg { width: 20px; height: 20px; }
 
-.modal__body { padding: 0 var(--sp-5) var(--sp-6); }
+.modal__body { 
+  padding: 0 var(--sp-5) var(--sp-6); 
+  max-height: calc(90vh - 120px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
 /* Desktop: centered modal */
 @media (min-width: 600px) {
